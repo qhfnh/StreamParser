@@ -1,0 +1,12 @@
+.server.*.log
+.tools/
+.claude/
+.agents/
+skills-lock.json
+
+node_modules/
+dist/
+coverage/
+
+*.tmp
+*.log

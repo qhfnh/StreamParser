@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H.264/H.265 码流解析器 - 在线 NAL 单元分析 | 帧类型检测 | SPS/PPS 参数解析</title>
+  <meta name="description" content="纯前端 H.264/H.265 裸码流在线解析工具，支持 Annex B 字节流拖拽上传。深度解析 NAL 单元、SPS/PPS/VPS 参数集、帧类型（I/P/B）检测、GOP 分析、SEI 消息。所有解析在本地浏览器 Web Worker 中执行，不上传服务器，保护数据安全。">
+  <meta name="keywords" content="H.264, H.265, HEVC, 码流解析, NAL单元, SPS, PPS, VPS, 帧类型, I帧, P帧, B帧, GOP分析, SEI, Annex B, 起始码, 裸流分析, 视频编码">
+  <meta name="author" content="H.264/H.265 Bitstream Analyzer">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="">
+  <link rel="stylesheet" href="style.css?v=20260520-3">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "H.264/H.265 裸码流在线解析器",
+    "description": "纯前端 H.264/H.265 Annex B 码流解析工具，支持 NAL 单元扫描、参数集深度解析、帧类型检测与 GOP 分析",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires JavaScript and Web Workers",
+    "offers": {
+      "@type": "Offer",
+      "price": "0"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "Bitstream Analyzer"
+    }
+  }
+  </script>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">跳转到主要内容</a>
+
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <h1>H.264/H.265 裸码流在线解析器</h1>
+      <p class="subtitle">Annex B 字节流分析 — NAL 单元扫描 · 参数集深度解析 · 帧类型与 GOP 检测</p>
+    </div>
+  </header>
+
+  <main id="main-content" role="main">
+    <!-- Upload Section -->
+    <section class="upload-section" aria-labelledby="upload-heading">
+      <h2 id="upload-heading" class="section-title">上传码流文件</h2>
+      <div id="drop-zone" class="drop-zone" role="button" tabindex="0" aria-label="拖拽 .h264 或 .h265 文件到此处，或点击选择文件">
+        <div class="drop-zone-content">
+          <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M12 16V4m0 0L8 8m4-4l4 4M20 16v1a3 3 0 01-3 3H7a3 3 0 01-3-3v-1"/>
+          </svg>
+          <p class="drop-text">拖拽 <strong>.h264</strong> 或 <strong>.h265</strong> 裸流文件到此处</p>
+          <p class="drop-or">— 或 —</p>
+          <label class="file-btn" for="file-input">选择文件</label>
+          <input type="file" id="file-input" accept=".h264,.h265,.264,.265,.hevc,.bin" hidden>
+          <p class="drop-hint">支持 Annex B 字节流格式（起始码 0x000001 / 0x00000001）</p>
+        </div>
+      </div>
+      <p id="file-info" class="file-info" aria-live="polite"></p>
+      <div id="progress-bar" class="progress-container" hidden>
+        <div class="progress-fill"></div>
+        <span class="progress-text">0%</span>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results-section" class="results-section" hidden aria-labelledby="results-heading">
+      <h2 id="results-heading" class="section-title">解析结果</h2>
+
+      <!-- Summary Stats -->
+      <div id="summary-stats" class="summary-stats" aria-live="polite"></div>
+
+      <!-- Tab Navigation -->
+      <nav class="tab-nav" role="tablist" aria-label="解析结果分类">
+        <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-nal" id="tab-nal" data-tab="nal">NAL 单元列表</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-params" id="tab-params" data-tab="params" disabled>参数集详情</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-frames" id="tab-frames" data-tab="frames" disabled>帧分析 &amp; GOP</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-sei" id="tab-sei" data-tab="sei" disabled>SEI 消息</button>
+      </nav>
+
+      <!-- Tab Panels -->
+      <div class="tab-panels">
+        <article id="panel-nal" class="tab-panel active" role="tabpanel" aria-labelledby="tab-nal">
+          <aside class="nal-inspector" aria-label="NAL 字段解析">
+            <div class="inspector-section inspector-fields">
+              <div class="inspector-header">
+                <div>
+                  <div class="inspector-kicker">Selected NAL</div>
+                  <h3 id="nal-detail-title">No NAL selected</h3>
+                </div>
+                <span id="nal-detail-badge" class="inspector-badge">-</span>
+              </div>
+              <div id="nal-field-list" class="field-list"></div>
+            </div>
+            <div class="inspector-section inspector-binary">
+              <div class="binary-header">
+                <h3 id="nal-binary-title">Binary</h3>
+                <span id="nal-binary-range" class="panel-count"></span>
+              </div>
+              <div id="nal-binary-view" class="binary-view"></div>
+            </div>
+          </aside>
+          <div class="panel-toolbar">
+            <input type="text" id="nal-filter" class="filter-input" placeholder="搜索 NAL 类型或名称...">
+          </div>
+          <div class="table-wrap">
+            <table id="nal-table" class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>类型</th>
+                  <th>名称</th>
+                  <th>偏移</th>
+                  <th>长度</th>
+                  <th>起始码</th>
+                  <th>Frame</th>
+                  <th id="nal-codec-header" class="codec-col">Ref IDC</th>
+                  <th class="tid-col" title="Temporal ID"><abbr title="Temporal ID">TID</abbr></th>
+                </tr>
+              </thead>
+              <tbody id="nal-tbody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article id="panel-params" class="tab-panel" role="tabpanel" aria-labelledby="tab-params">
+          <div id="params-content" class="params-grid"></div>
+        </article>
+
+        <article id="panel-frames" class="tab-panel" role="tabpanel" aria-labelledby="tab-frames">
+          <div id="frames-stats" class="frames-stats"></div>
+          <div class="table-wrap">
+            <table id="frames-table" class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>NAL #</th>
+                  <th>类型</th>
+                  <th>POC</th>
+                  <th>Frame Num</th>
+                  <th class="tid-col" title="Temporal ID"><abbr title="Temporal ID">TID</abbr></th>
+                  <th>GOP</th>
+                </tr>
+              </thead>
+              <tbody id="frames-tbody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article id="panel-sei" class="tab-panel" role="tabpanel" aria-labelledby="tab-sei">
+          <div id="sei-content" class="sei-list"></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Error Section -->
+    <section id="error-section" class="error-section" hidden aria-labelledby="error-heading">
+      <h2 id="error-heading" class="error-title">解析错误</h2>
+      <div id="error-content" class="error-content"></div>
+    </section>
+
+    <!-- Technical Introduction -->
+    <section class="tech-intro" aria-labelledby="tech-heading">
+      <h2 id="tech-heading" class="section-title">关于 H.264/H.265 码流结构</h2>
+      <article class="tech-article">
+        <h3>NAL 单元与 Annex B 字节流</h3>
+        <p>H.264（AVC）与 H.265（HEVC）编码的视频在传输和存储时通常采用 <strong>Annex B 字节流格式</strong>。该格式通过<strong>起始码（Start Code）</strong>来分隔连续的 NAL（Network Abstraction Layer）单元。起始码可以是 3 字节的 <code>0x000001</code> 或 4 字节的 <code>0x00000001</code>，解析器通过扫描这些特征字节序列来定位每个 NAL 单元的边界，从而完成<strong>码流解析</strong>的第一步。</p>
+
+        <h3>参数集：SPS、PPS 与 VPS</h3>
+        <p>H.264 码流中，<strong>SPS（序列参数集）</strong>包含图像分辨率（通过 <code>frame_cropping</code> 偏移量计算实际宽高）、profile 与 level 标识、色度采样格式（<code>chroma_format_idc</code>）等全局信息。H.265/HEVC 在此基础上增加了 <strong>VPS（视频参数集）</strong>，用于描述多层编码、可伸缩视频等高级特性。VPS 中的 <code>profile_tier_level</code> 结构定义了编码器的能力等级，而 <code>conformance_window</code> 标志用于从编码分辨率推导显示分辨率。</p>
+
+        <h3>帧类型识别与 GOP 分析</h3>
+        <p>通过解析 VCL NAL 单元中的 <strong>Slice Header</strong>，可以提取 <code>slice_type</code> 字段，从而判断当前帧是 <strong>I 帧（帧内预测）</strong>、<strong>P 帧（前向预测）</strong> 还是 <strong>B 帧（双向预测）</strong>。连续的编码帧组成一个 <strong>GOP（Group of Pictures）</strong>，通常以 I 帧为起始。GOP 长度和结构直接影响视频的随机访问性能和压缩效率。本工具自动统计 I/P/B 帧数量与 GOP 分布，辅助分析编码器配置。</p>
+
+        <h3>SEI 消息与补充增强信息</h3>
+        <p><strong>SEI（Supplemental Enhancement Information）</strong>负载携带不影响解码的辅助信息，常见的包括缓冲周期（<code>buffering_period</code>）、图像时序（<code>pic_timing</code>）、用户自定义数据（<code>user_data_unregistered</code>）等。这些消息在码流分析、调试和合规性检测中具有重要价值。</p>
+
+        <h3>位流读取与标准参照</h3>
+        <p>裸码流解析的核心是<strong>基于标准的位流读取</strong>。H.264 语法参照 ITU-T H.264 (08/2024) 第 7.3 节，H.265 语法参照 ITU-T H.265 (01/2026) 第 7.3 节。本解析器实现了完整的 Exp-Golomb 熵解码、定长和变长字段读取，以及对 <code>ue(v)</code>、<code>se(v)</code> 等描述符的精确处理。所有解析逻辑在 Web Worker 中异步执行，确保大文件解析时不影响页面交互。</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <p class="security-notice"><strong>安全声明：</strong>所有文件解析仅在您的本地浏览器中执行，码流数据不会上传至任何服务器。本工具完全离线可用，无需网络连接。</p>
+      <p class="compatibility-note">支持格式：H.264 Annex B 裸流（.h264）、H.265/HEVC Annex B 裸流（.h265）。不支持 MP4、MKV 等容器格式。</p>
+      <p class="tech-note">基于 ITU-T H.264 (08/2024) 与 ITU-T H.265 (01/2026) 标准语法实现。纯原生 JavaScript，无第三方依赖，Web Worker 多线程解析。</p>
+    </div>
+  </footer>
+
+  <script src="main.js?v=20260524-6"></script>
+</body>
+</html>
