@@ -38,10 +38,6 @@
 - `docs/specs/ITU-T_H.264_2024-08.pdf`：ITU-T H.264 (08/2024)，Advanced video coding for generic audiovisual services。
 - `docs/specs/ITU-T_H.265_2026-01.pdf`：ITU-T H.265 (01/2026)，High efficiency video coding。
 
-修改解析逻辑时，应按协议中的 syntax table、semantics 和 Annex B 规则逐项对齐，不能只按样本文件写特例。
-H.264 当前实现重点对齐 7.3.1、7.3.2.1、7.3.2.2、7.3.2.3、7.3.3、Annex B 和 Annex E；SEI 解析支持按 payload type/size 分离真实消息与 `rbsp_trailing_bits`，AUD、end of sequence、end of stream 和 filler data 以协议 syntax element 暴露。
-H.265 当前实现重点对齐 7.3.1、7.3.2、7.3.3、7.3.4、7.3.6、7.3.7、Annex B、Annex D 和 E.2.1；新增字段必须使用协议 syntax element 原名，并同步维护字段树和二进制高亮映射。P/B slice header 按 7.3.6 在 `slice_pic_order_cnt_lsb` 后读取 `short_term_ref_pic_set_sps_flag`，即使 SPS 中 `num_short_term_ref_pic_sets` 为 0 也不能跳过该字段；`slice_deblocking_filter_disabled_flag` 缺省时按 PPS 推导值判断 `slice_loop_filter_across_slices_enabled_flag` 是否存在。SEI 统计只计入真实 SEI message，不把 `rbsp_trailing_bits` 计为 payload。保留或未指定的 H.265 non-VCL 类型按 Table 7-1 命名，并以 `rbsp_byte[]` 暴露原始 RBSP 载荷。
-
 ## 本地运行
 
 本项目没有构建步骤，直接启动静态服务器即可：
@@ -81,10 +77,6 @@ Get-ChildItem -Path tests -Filter *.test.js | ForEach-Object { node $_.FullName 
 - 修改字段解析时，需要同步维护 `fieldMap`，否则 Selected NAL 中字段无法点击高亮。
 - 修改 H.264/H.265 bit 映射时，要保留 `segments` 逻辑，避免把 `0x03` 防竞争字节计入字段高亮。
 - 修改 `main.js` 或 `parser-worker.js` 后，建议更新 `index.html` / worker 引用中的版本号，避免浏览器缓存旧文件。
-
-## 文档维护
-
-代码变更后需要同步检查并更新本 README。凡是项目结构、运行命令、测试命令、解析能力、统计口径、二进制高亮行为、样本文件或已知说明发生变化，都应及时更新本文档，保证 README 与当前代码实现一致。
 
 ## 已知说明
 
