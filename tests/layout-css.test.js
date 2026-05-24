@@ -88,6 +88,18 @@ assert(fieldList.includes('min-height: 0;'), 'field list should scroll instead o
 assert(fieldList.includes('overflow-y: scroll;'), 'field list should reserve a vertical scrollbar');
 assert(fieldList.includes('scrollbar-gutter: stable;'), 'field list should reserve scrollbar gutter');
 
+const paramCardBody = blockFor('.param-card-body');
+assert(paramCardBody.includes('grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);'), 'parameter value grid columns should shrink instead of clipping values out of view');
+
+const paramKey = blockFor('.param-card-body .param-key');
+assert(paramKey.includes('min-width: 0;'), 'long parameter keys should be allowed to shrink inside cards');
+assert(paramKey.includes('overflow-wrap: anywhere;'), 'long parameter keys should wrap instead of pushing values out of view');
+
+const paramValue = blockFor('.param-card-body .param-val');
+assert(paramValue.includes('min-width: 0;'), 'parameter values should be allowed to shrink inside cards');
+assert(paramValue.includes('overflow-wrap: anywhere;'), 'long parameter values should wrap inside cards');
+assert(paramValue.includes('justify-self: stretch;'), 'parameter values should use the available value column width');
+
 const fieldTree = blockFor('.field-tree');
 assert(fieldTree.includes('display: flex;'), 'Selected NAL tree should stack nodes predictably');
 assert(fieldTree.includes('gap:'), 'Selected NAL tree should keep compact spacing between nodes');
