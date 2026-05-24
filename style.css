@@ -870,7 +870,7 @@ button.field-row.field-clickable:hover,
 .param-card-body {
   padding: 12px 16px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 6px 16px;
 }
 .param-card-body .param-item {
@@ -879,15 +879,23 @@ button.field-row.field-clickable:hover,
 .param-card-body .param-key {
   color: var(--text-secondary);
   font-size: 0.85rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 .param-card-body .param-val {
   font-family: var(--font-mono);
   font-size: 0.85rem;
   text-align: right;
-  word-break: break-all;
+  min-width: 0;
+  justify-self: stretch;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 .param-card-body .param-full {
   grid-column: 1 / -1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* === Frame Stats === */
@@ -1076,7 +1084,7 @@ button.field-row.field-clickable:hover,
     font-size: 1.2rem;
   }
   .param-card-body {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 
