@@ -5,7 +5,9 @@
 ## 功能特性
 
 - 支持 `.h264`、`.h265`、`.264`、`.265`、`.hevc`、`.bin` 文件。
+- 支持拖拽上传或单击“选择文件”，重复选择同一文件也会重新触发解析。
 - 扫描 Annex B 起始码，展示 NAL 偏移、长度、类型、Temporal ID 等信息。
+- NAL 单元列表使用紧凑名称显示，完整协议名称保留在悬停提示中，并将 Frame 列放在起始码列之前便于快速查看帧类型。
 - 解析 H.264 SPS/PPS/slice/SEI/AUD/EOS/EOB/filler 和 H.265 VPS/SPS/PPS/slice/SEI。
 - H.264 字段名、顺序和条件读取按 ITU-T H.264 (08/2024) syntax table 对齐，SEI message 只计入真实 payload，并把 `uuid_iso_iec_11578`、`user_data_payload_byte`、`rbsp_trailing_bits` 和常见 non-VCL RBSP 字段映射到二进制高亮。
 - H.265 字段名、顺序和条件读取按 ITU-T H.265 (01/2026) syntax table 对齐，覆盖 PTL、VUI HRD、scaling list、SPS/PPS range/SCC extension、SEI、AUD/EOS/EOB/FD 和 slice header 字段。

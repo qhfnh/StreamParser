@@ -77,7 +77,9 @@ assert(!tidHeader.includes('font-size: 0.66rem;'), 'TID header should not be vis
 assert(tidHeader.includes('letter-spacing: 0;'), 'TID header should not inherit wide table header letter spacing');
 
 const nameColumn = blockFor('#nal-table th:nth-child(3),\n#nal-table td:nth-child(3)');
-assert(nameColumn.includes('width: auto;'), 'NAL name column should take the reclaimed width');
+assert(nameColumn.includes('width: 180px;'), 'NAL name column should stay compact when long names are shown');
+assert(nameColumn.includes('white-space: nowrap;'), 'NAL name column should keep long names on one line');
+assert(nameColumn.includes('text-overflow: ellipsis;'), 'NAL name column should truncate long names visually');
 
 const fieldList = blockFor('.field-list');
 assert(fieldList.includes('height: auto;'), 'field list should use the fixed field section height');

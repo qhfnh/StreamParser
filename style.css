@@ -372,10 +372,11 @@ main {
 }
 #nal-table th:nth-child(3),
 #nal-table td:nth-child(3) {
-  width: auto;
+  width: 180px;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 #nal-table th:nth-child(4),
 #nal-table td:nth-child(4) {
@@ -387,11 +388,11 @@ main {
 }
 #nal-table th:nth-child(6),
 #nal-table td:nth-child(6) {
-  width: 116px;
+  width: 64px;
 }
 #nal-table th:nth-child(7),
 #nal-table td:nth-child(7) {
-  width: 64px;
+  width: 116px;
 }
 #nal-table th:nth-child(8),
 #nal-table td:nth-child(8) {

@@ -39,7 +39,7 @@
 
   function ensureWorker() {
     if (!worker) {
-      worker = new Worker('parser-worker.js?v=20260524-6');
+      worker = new Worker('parser-worker.js?v=20260524-8');
       worker.onmessage = handleWorkerMessage;
       worker.onerror = function (event) {
         showProgress(false);
@@ -76,14 +76,28 @@
     }
   });
 
-  dropZone.addEventListener('click', function () {
+  function isFileInputActivator(target) {
+    return Boolean(target && target.closest && target.closest('label[for="file-input"], #file-input'));
+  }
+
+  function openFilePicker() {
+    fileInput.value = '';
     fileInput.click();
+  }
+
+  fileInput.addEventListener('click', function () {
+    fileInput.value = '';
+  });
+
+  dropZone.addEventListener('click', function (e) {
+    if (isFileInputActivator(e.target)) return;
+    openFilePicker();
   });
 
   dropZone.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      fileInput.click();
+      openFilePicker();
     }
   });
 
@@ -254,17 +268,18 @@
       const frameClass = frameType === 'IDR' ? 'frame-idr' : (frameType === 'I' ? 'frame-i' : (frameType === 'P' ? 'frame-p' : (frameType === 'B' ? 'frame-b' : 'frame-none')));
       const frameSearchType = frameType === 'IDR' || frameType === 'I' || frameType === 'P' || frameType === 'B' ? frameType.toLowerCase() : '';
       const searchText = buildNALSearchText(nal, frameType, startCodeType);
+      const displayName = getNALDisplayName(nal);
 
       const selectedClass = nal.index === selectedNalIndex ? ' selected' : '';
 
       html += `<tr class="nal-row${selectedClass}" data-nal-index="${nal.index}" data-frame-type="${frameSearchType}" data-search-text="${escapeHtml(searchText)}" tabindex="0">
         <td>${nal.index + 1}</td>
         <td class="nal-type-num">${nal.nal_unit_type}</td>
-        <td class="${rowClass}">${escapeHtml(nal.type_name)}</td>
+        <td class="${rowClass}" title="${escapeHtml(nal.type_name)}">${escapeHtml(displayName)}</td>
         <td class="offset-col">0x${nal.offset.toString(16).toUpperCase().padStart(8, '0')}</td>
         <td class="offset-col">${nal.length.toLocaleString()}</td>
-        <td class="offset-col">${startCodeType}</td>
         <td><span class="frame-pill ${frameClass}">${escapeHtml(frameType)}</span></td>
+        <td class="offset-col">${startCodeType}</td>
         <td class="codec-col">${isH265 ? (nal.layer_id != null ? nal.layer_id : '-') : (nal.nal_ref_idc != null ? nal.nal_ref_idc : '-')}</td>
         <td class="tid-col">${nal.temporal_id != null ? nal.temporal_id : '-'}</td>
       </tr>`;
@@ -272,10 +287,39 @@
     nalTbody.innerHTML = html;
   }
 
+  function getNALDisplayName(nal) {
+    if (!nal) return '-';
+    if (codec === 'H265') return nal.type_name || '-';
+    const h264Names = {
+      1: 'Non-IDR slice',
+      2: 'Slice data A',
+      3: 'Slice data B',
+      4: 'Slice data C',
+      5: 'IDR slice',
+      6: 'SEI',
+      7: 'SPS',
+      8: 'PPS',
+      9: 'AUD',
+      10: 'EOS',
+      11: 'EOB',
+      12: 'Filler',
+      13: 'SPS ext',
+      14: 'Prefix',
+      15: 'Subset SPS',
+      16: 'DPS',
+      18: 'Aux slice',
+      19: 'Ext slice',
+      20: 'Depth slice',
+      21: 'Depth slice'
+    };
+    return h264Names[nal.nal_unit_type] || nal.type_name || '-';
+  }
+
   function buildNALSearchText(nal, frameType, startCodeType) {
     const parts = [
       String(nal.index + 1),
       String(nal.nal_unit_type),
+      getNALDisplayName(nal),
       nal.type_name,
       `0x${nal.offset.toString(16).toUpperCase().padStart(8, '0')}`,
       String(nal.length),

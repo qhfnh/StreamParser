@@ -14,6 +14,10 @@ assert(!html.includes('class="col-h264"'), 'NAL table should not keep a hidden H
 assert(!html.includes('class="col-h265"'), 'NAL table should not keep a hidden H.265 column');
 assert(main.includes('nalCodecHeader.textContent'), 'NAL table should rename the single codec column per codec');
 assert(main.includes('<td class="codec-col">'), 'NAL rows should render one codec-specific value column');
+assert(html.indexOf('<th>Frame</th>') < html.indexOf('<th>起始码</th>'), 'NAL table should show Frame before start code');
+assert(main.indexOf('frame-pill') < main.indexOf('${startCodeType}</td>'), 'NAL rows should render Frame before start code');
+assert(main.includes('getNALDisplayName'), 'NAL name cells should use compact display names');
+assert(main.includes('title="${escapeHtml(nal.type_name)}"'), 'NAL name cells should keep the full name in a tooltip');
 assert(main.includes('Showing bytes'), 'binary truncation note should explain that it is a preview window');
 assert(main.includes('Showing all'), 'binary note should also explain when the full NAL is visible');
 assert(main.includes('toLocaleString()'), 'binary truncation note should format large byte counts');
@@ -56,5 +60,8 @@ assert(main.includes('getClickedFieldRange'), 'binary highlighting should use DO
 assert(main.includes('range.coding'), 'field rows should show whether highlighted bits are fixed-width or Exp-Golomb coded');
 assert(main.includes('formatCodingText'), 'field rows should explain Exp-Golomb codewords separately from decoded values');
 assert(main.includes('codeword'), 'Exp-Golomb fields should show the highlighted codeword');
+assert(main.includes('isFileInputActivator'), 'drop-zone click handler should ignore clicks already handled by the file input label');
+assert(main.includes('label[for="file-input"], #file-input'), 'file picker guard should cover the label and the input itself');
+assert(main.includes("fileInput.value = ''"), 'file input should reset before opening so selecting the same file triggers parsing again');
 
 console.log('main UI text assertions passed');
