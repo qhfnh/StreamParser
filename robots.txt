@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
 
-# Add a Sitemap line after the production domain is fixed, for example:
-# Sitemap: https://example.com/sitemap.xml
+# Generated during deployment by scripts/generate-sitemap.js when SITE_URL is set.

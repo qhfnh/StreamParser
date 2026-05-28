@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "build": "node scripts/generate-sitemap.js",
+    "generate:sitemap": "node scripts/generate-sitemap.js",
+    "test": "node --check assets/main.js && node --check assets/parser-worker.js && node --check assets/site-i18n.js && node tests/layout-css.test.js && node tests/main-ui-text.test.js && node tests/parser-worker-field-map.test.js && node tests/site-content.test.js && node tests/sitemap-generation.test.js"
+  }
+}

@@ -40,7 +40,11 @@
 ├── samples/                # 本地回归样本
 │   ├── ouput.h264
 │   └── outp.h265
+├── scripts/
+│   └── generate-sitemap.js # 根据 SITE_URL 生成 sitemap.xml 和 robots.txt
 ├── robots.txt              # 搜索引擎抓取规则
+├── ads.txt                 # Google AdSense 授权文件
+├── BingSiteAuth.xml        # Bing 站点验证文件
 ├── tests/                  # Node 回归测试
 └── docs/specs/             # 本地协议 PDF
 ```
@@ -54,7 +58,7 @@
 
 ## 本地运行
 
-本项目没有构建步骤，直接启动静态服务器即可：
+本地调试解析功能时不需要构建，直接启动静态服务器即可：
 
 ```powershell
 python -m http.server 8000
@@ -67,6 +71,22 @@ http://127.0.0.1:8000/
 ```
 
 在页面中选择或拖拽码流文件即可开始解析。
+
+## 部署
+
+Vercel 部署时设置环境变量：
+
+```text
+SITE_URL=https://your-domain.com
+```
+
+Build Command 设置为：
+
+```powershell
+npm run build
+```
+
+构建会根据 `SITE_URL` 在站点根目录生成 `sitemap.xml`，并在 `robots.txt` 中写入对应的 Sitemap 地址。Bing 站长平台可提交 `https://your-domain.com/sitemap.xml`。
 
 ## 测试
 
@@ -81,7 +101,7 @@ node --check assets/site-i18n.js
 运行全部测试：
 
 ```powershell
-Get-ChildItem -Path tests -Filter *.test.js | ForEach-Object { node $_.FullName }
+npm test
 ```
 
 测试覆盖内容包括字段映射、二进制高亮、H.264/H.265 样本解析、布局约束、UI 文本约束和内容页中英文切换约束。
