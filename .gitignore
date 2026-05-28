@@ -3,6 +3,9 @@
 .claude/
 .agents/
 skills-lock.json
+AGENTS.md
+docs/nav-options.html
+docs/specs/text/
 
 node_modules/
 dist/

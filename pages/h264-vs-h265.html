@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H.264 和 H.265 有什么区别？压缩效率、码流结构与兼容性对比</title>
+  <meta name="description" content="对比 H.264/AVC 与 H.265/HEVC 的压缩效率、码流结构、参数集、NAL 类型、兼容性和使用场景，帮助选择编码格式并排查码流问题。">
+  <meta name="robots" content="index, follow">
+  <link rel="stylesheet" href="../assets/style.css?v=20260526-1">
+</head>
+<body>
+  <div class="top-bar">
+    <div class="portal-top">
+      <a class="brand-link" href="../index.html">StreamParser</a>
+      <nav class="portal-main-nav" aria-label="主导航">
+        <a href="../index.html">解析工具</a>
+        <a class="active" href="h264-guide.html">教程</a>
+        <a href="examples.html">示例解析</a>
+        <a href="sps-pps-vps-explained.html">协议</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="portal-actions">
+        <a class="portal-action" href="../index.html">打开工具</a>
+        <div id="language-switch" class="language-switch" role="group" aria-label="Language">
+          <button type="button" class="language-btn active" data-lang="zh" aria-pressed="true">中文</button>
+          <button type="button" class="language-btn" data-lang="en" aria-pressed="false">English</button>
+        </div>
+      </div>
+    </div>
+    <div class="sub-nav-bar"><nav class="sub-nav" aria-label="二级导航"><a href="h264-guide.html">H.264 基础</a><a href="h265-guide.html">H.265 基础</a><a class="active" href="h264-vs-h265.html">H.264 vs H.265</a></nav></div>
+  </div>
+
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <h1>H.264 vs H.265</h1>
+      <p class="subtitle">从压缩效率、码流结构、兼容性和解析角度比较 AVC 与 HEVC</p>
+    </div>
+  </header>
+
+  <main class="content-page">
+    <section class="content-hero">
+      <span class="content-kicker">Codec Comparison</span>
+      <h1>H.264 和 H.265 有什么区别？</h1>
+      <p class="lede">H.264 更成熟、兼容性更广；H.265 压缩效率更高，但编码复杂度和设备兼容要求也更高。对码流解析来说，两者的 NAL header、参数集和 slice 语法都有明显差异。</p>
+    </section>
+
+    <article class="article-main">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>H.264 / AVC</th>
+            <th>H.265 / HEVC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>定位</td>
+            <td>高清和通用视频编码标准，兼容性强。</td>
+            <td>面向更高压缩效率，常用于 4K/8K/HDR。</td>
+          </tr>
+          <tr>
+            <td>参数集</td>
+            <td>SPS、PPS。</td>
+            <td>VPS、SPS、PPS。</td>
+          </tr>
+          <tr>
+            <td>NAL header</td>
+            <td>包含 forbidden_zero_bit、nal_ref_idc、nal_unit_type。</td>
+            <td>包含 forbidden_zero_bit、nal_unit_type、nuh_layer_id、nuh_temporal_id_plus1。</td>
+          </tr>
+          <tr>
+            <td>帧类型判断</td>
+            <td>主要结合 VCL NAL 类型和 slice_type。</td>
+            <td>需要结合 HEVC VCL NAL 类型、IRAP 类型和 slice_type。</td>
+          </tr>
+          <tr>
+            <td>兼容性</td>
+            <td>浏览器、播放器、硬件解码支持更普遍。</td>
+            <td>新设备支持较好，旧设备或浏览器可能受限。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>压缩效率不是唯一指标</h2>
+      <p>H.265 通常可以在相近画质下降低码率，但这取决于编码器、preset、码率控制、内容复杂度和播放设备。对实时场景来说，编码延迟、硬件编码支持和解码功耗同样重要。</p>
+
+      <h2>为什么解析时不能混用规则</h2>
+      <p>H.264 和 H.265 的 NAL header 位宽不同，参数集结构不同，slice header 条件分支也不同。如果用 H.264 的逻辑读 H.265，字段值会整体错位；反过来也一样。解析器必须先检测编码格式，再按对应协议读取字段。</p>
+
+      <h2>选择建议</h2>
+      <ul>
+        <li>需要最大兼容性、网页播放或旧设备支持时，优先考虑 H.264。</li>
+        <li>需要更低码率、4K/8K 或存储成本敏感时，可以考虑 H.265。</li>
+        <li>做码流排查时，先确认文件是 H.264 还是 H.265 Annex B 裸流，再看参数集和帧类型。</li>
+      </ul>
+
+      <nav class="page-footer-nav" aria-label="相关页面">
+        <a href="../index.html">打开解析工具</a>
+        <a href="annex-b-vs-mp4.html">Annex B 与 MP4 区别</a>
+        <a href="sps-pps-vps-explained.html">参数集说明</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <nav class="footer-links" aria-label="站点链接">
+        <a href="../index.html">解析工具</a>
+        <a href="privacy.html">隐私政策</a>
+        <a href="terms.html">使用条款</a>
+        <a href="contact.html">联系</a>
+      </nav>
+      <p class="security-notice"><strong>安全声明：</strong>解析器在浏览器本地运行，不上传码流文件。</p>
+    </div>
+  </footer>
+  <script src="../assets/site-i18n.js?v=20260526-1"></script>
+</body>
+</html>

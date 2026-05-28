@@ -1,7 +1,7 @@
 const assert = require('assert');
 const fs = require('fs');
 
-const css = fs.readFileSync('style.css', 'utf8');
+const css = fs.readFileSync('assets/style.css', 'utf8');
 const normalizedCss = css.replace(/\r\n/g, '\n');
 
 function blockFor(selector) {

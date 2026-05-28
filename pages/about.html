@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>关于 H.264/H.265 裸码流在线解析器</title>
+  <meta name="description" content="了解 H.264/H.265 裸码流在线解析器的用途、协议参考、隐私设计和适用场景。">
+  <meta name="robots" content="index, follow">
+  <link rel="stylesheet" href="../assets/style.css?v=20260526-1">
+</head>
+<body>
+  <div class="top-bar">
+    <div class="portal-top">
+      <a class="brand-link" href="../index.html">StreamParser</a>
+      <nav class="portal-main-nav" aria-label="主导航">
+        <a href="../index.html">解析工具</a>
+        <a href="h264-guide.html">教程</a>
+        <a href="examples.html">示例解析</a>
+        <a href="sps-pps-vps-explained.html">协议</a>
+        <a href="faq.html">FAQ</a>
+        <a class="active" href="about.html">关于</a>
+      </nav>
+      <div class="portal-actions">
+        <a class="portal-action" href="../index.html">打开工具</a>
+        <div id="language-switch" class="language-switch" role="group" aria-label="Language">
+          <button type="button" class="language-btn active" data-lang="zh" aria-pressed="true">中文</button>
+          <button type="button" class="language-btn" data-lang="en" aria-pressed="false">English</button>
+        </div>
+      </div>
+    </div>
+    <div class="sub-nav-bar"><nav class="sub-nav" aria-label="二级导航"><a class="active" href="about.html">关于项目</a><a href="privacy.html">隐私政策</a><a href="terms.html">使用条款</a><a href="contact.html">联系反馈</a></nav></div>
+  </div>
+
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <h1>关于本工具</h1>
+      <p class="subtitle">面向视频开发、测试和码流排查的本地解析工具</p>
+    </div>
+  </header>
+
+  <main class="content-page legal-page">
+    <section class="content-hero">
+      <span class="content-kicker">About</span>
+      <h1>H.264/H.265 裸码流在线解析器</h1>
+      <p class="lede">本项目是一个纯静态前端工具，用于分析 H.264/H.265 Annex B 裸码流中的 NAL 单元、参数集、slice header、SEI、帧类型和二进制字段范围。</p>
+    </section>
+
+    <h2>适用场景</h2>
+    <ul>
+      <li>检查编码器是否输出正确的 SPS/PPS/VPS。</li>
+      <li>排查 I/P/B/IDR 帧类型和 GOP 结构。</li>
+      <li>查看协议字段与原始二进制 bit 的对应关系。</li>
+      <li>验证 H.264/H.265 Annex B 裸码流是否完整。</li>
+    </ul>
+
+    <h2>协议参考</h2>
+    <p>解析逻辑参考 ITU-T H.264 / ISO/IEC 14496-10 与 ITU-T H.265 / ISO/IEC 23008-2。页面展示的 syntax element 尽量保持协议原名，便于与标准文档和其他分析工具交叉验证。</p>
+
+    <h2>隐私设计</h2>
+    <p>文件在浏览器中通过 Web Worker 解析，不上传到服务器。静态部署时，站点本身不需要后端 API。</p>
+
+    <nav class="page-footer-nav" aria-label="相关页面">
+      <a href="../index.html">打开解析工具</a>
+      <a href="privacy.html">隐私政策</a>
+      <a href="terms.html">使用条款</a>
+      <a href="contact.html">联系</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <nav class="footer-links" aria-label="站点链接">
+        <a href="../index.html">解析工具</a>
+        <a href="privacy.html">隐私政策</a>
+        <a href="terms.html">使用条款</a>
+        <a href="contact.html">联系</a>
+      </nav>
+      <p class="security-notice"><strong>安全声明：</strong>解析器在浏览器本地运行，不上传码流文件。</p>
+    </div>
+  </footer>
+  <script src="../assets/site-i18n.js?v=20260526-1"></script>
+</body>
+</html>

@@ -14,7 +14,7 @@ global.self = {
   }
 };
 
-const workerSource = fs.readFileSync('parser-worker.js', 'utf8');
+const workerSource = fs.readFileSync('assets/parser-worker.js', 'utf8');
 assert(workerSource.includes('buildPictureFrames'), 'worker should aggregate VCL slices into picture-level frame records');
 assert(workerSource.includes('parseH265SPS(rbsp, fieldMap'), 'H.265 SPS parsing should produce field ranges for clickable nodes');
 assert(workerSource.includes('parseH265PPS(rbsp, fieldMap'), 'H.265 PPS parsing should produce field ranges for clickable nodes');
@@ -28,9 +28,9 @@ assert(workerSource.includes('parseH264EmptyRbsp'), 'H.264 end-of-sequence/end-o
 assert(workerSource.includes('scaling_list_delta_coef'), 'H.265 scaling_list_data should expose protocol syntax element scaling_list_delta_coef');
 assert(workerSource.includes('sps_extension_data_flag'), 'H.265 SPS extension data flags should be mapped when present');
 assert(workerSource.includes('pps_extension_data_flag'), 'H.265 PPS extension data flags should be mapped when present');
-vm.runInThisContext(workerSource, { filename: 'parser-worker.js' });
+vm.runInThisContext(workerSource, { filename: 'assets/parser-worker.js' });
 
-const file = fs.readFileSync('ouput.h264');
+const file = fs.readFileSync('samples/ouput.h264');
 const buffer = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength);
 self.onmessage({ data: { type: 'parse', buffer } });
 
@@ -240,7 +240,7 @@ assert(findField(h264Filler, 'parseResult.rbsp_trailing_bits.rbsp_stop_one_bit')
 assert.strictEqual(parseResult.nals.find(nal => nal.nal_unit_type === 10).parseResult.syntax, 'end_of_seq_rbsp', 'H.264 end of sequence should expose syntax node');
 assert.strictEqual(parseResult.nals.find(nal => nal.nal_unit_type === 11).parseResult.syntax, 'end_of_stream_rbsp', 'H.264 end of stream should expose syntax node');
 
-const h265File = fs.readFileSync('outp.h265');
+const h265File = fs.readFileSync('samples/outp.h265');
 const h265Buffer = h265File.buffer.slice(h265File.byteOffset, h265File.byteOffset + h265File.byteLength);
 parseResult = null;
 messages.length = 0;

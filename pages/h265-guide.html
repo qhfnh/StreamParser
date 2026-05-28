@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H.265 是什么？HEVC 码流、VPS/SPS/PPS、Temporal ID 基础</title>
+  <meta name="description" content="面向视频开发和码流排查的 H.265/HEVC 基础指南，解释 H.265 是什么、HEVC NAL 单元、VPS/SPS/PPS、slice header、SEI 和 Temporal ID。">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="H.265 是什么？HEVC 码流、VPS/SPS/PPS、Temporal ID 基础">
+  <meta property="og:description" content="理解 H.265/HEVC 码流结构，并学习如何查看 VPS/SPS/PPS、NAL 类型和 Temporal ID。">
+  <link rel="stylesheet" href="../assets/style.css?v=20260526-1">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "H.265 是什么？HEVC 码流、VPS/SPS/PPS、Temporal ID 基础",
+    "inLanguage": "zh-CN",
+    "about": ["H.265", "HEVC", "VPS", "SPS", "PPS", "Temporal ID"]
+  }
+  </script>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="portal-top">
+      <a class="brand-link" href="../index.html">StreamParser</a>
+      <nav class="portal-main-nav" aria-label="主导航">
+        <a href="../index.html">解析工具</a>
+        <a class="active" href="h264-guide.html">教程</a>
+        <a href="examples.html">示例解析</a>
+        <a href="sps-pps-vps-explained.html">协议</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="portal-actions">
+        <a class="portal-action" href="../index.html">打开工具</a>
+        <div id="language-switch" class="language-switch" role="group" aria-label="Language">
+          <button type="button" class="language-btn active" data-lang="zh" aria-pressed="true">中文</button>
+          <button type="button" class="language-btn" data-lang="en" aria-pressed="false">English</button>
+        </div>
+      </div>
+    </div>
+    <div class="sub-nav-bar"><nav class="sub-nav" aria-label="二级导航"><a href="h264-guide.html">H.264 基础</a><a class="active" href="h265-guide.html">H.265 基础</a><a href="h264-vs-h265.html">H.264 vs H.265</a></nav></div>
+  </div>
+
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <h1>H.265/HEVC 基础指南</h1>
+      <p class="subtitle">理解 HEVC NAL 单元、VPS/SPS/PPS、slice header 和 Temporal ID</p>
+    </div>
+  </header>
+
+  <main class="content-page">
+    <section class="content-hero">
+      <span class="content-kicker">H.265 / HEVC</span>
+      <h1>H.265 是什么？</h1>
+      <p class="lede">H.265，也称 HEVC（High Efficiency Video Coding），是 H.264 之后的视频压缩标准。它通常在相近主观质量下提供更高压缩效率，常用于 4K、8K、HDR、监控和高码率视频场景。</p>
+    </section>
+
+    <div class="article-layout">
+      <article class="article-main">
+        <h2 id="why">为什么会有 H.265</h2>
+        <p>H.264 在高清时代非常成功，但更高分辨率和更复杂的视频内容需要更高压缩效率。H.265 引入编码树单元（CTU）、更灵活的块划分、更强的预测模式和更复杂的变换/滤波工具，以换取更低码率或更高画质。</p>
+
+        <h2 id="nal">HEVC NAL 单元</h2>
+        <p>H.265 仍然使用 NAL 单元组织码流，但头部结构与 H.264 不同。HEVC NAL header 包含 <code>nal_unit_type</code>、<code>nuh_layer_id</code> 和 <code>nuh_temporal_id_plus1</code>。因此解析 H.265 时，Temporal ID 和 Layer ID 是非常重要的排查字段。</p>
+
+        <h2 id="vps">VPS/SPS/PPS</h2>
+        <p>H.265 在 SPS/PPS 之外新增 VPS（Video Parameter Set）。VPS 描述视频参数集级别的信息，SPS 描述序列属性，PPS 描述图像级编码配置。实际排查中，VPS/SPS/PPS 是否齐全、profile_tier_level 是否正确、VUI/HRD 是否存在，都会影响解码器兼容性和时间戳处理。</p>
+
+        <h2 id="slice">Slice Header 与帧类型</h2>
+        <p>H.265 的 VCL NAL 类型可以区分 TRAIL、TSA、STSA、RADL、RASL、IDR、CRA、BLA 等访问点语义。真正的 I/P/B 判断还需要读取 slice header 中的 <code>slice_type</code>。因此看到 SEI、VPS 或 IDR_N_LP 并不等价于普通 P 帧或 B 帧。</p>
+
+        <h2 id="temporal">Temporal ID</h2>
+        <p>Temporal ID 用于标识时间层级。低层级通常可以作为基础层，高层级可能依赖低层级。分析分层编码、低延迟配置或掉帧策略时，Temporal ID 能帮助判断哪些 NAL 对基本播放最关键。</p>
+
+        <div class="callout">本工具会展示 H.265 NAL 类型、Layer ID、TID、起始码、偏移、长度，并在 Selected NAL 中用树结构显示 VPS/SPS/PPS、slice header 和 SEI 字段。</div>
+
+        <nav class="page-footer-nav" aria-label="相关页面">
+          <a href="../index.html">打开解析工具</a>
+          <a href="h264-vs-h265.html">H.264 与 H.265 对比</a>
+          <a href="sps-pps-vps-explained.html">VPS/SPS/PPS 说明</a>
+          <a href="examples.html">查看示例解析</a>
+        </nav>
+      </article>
+
+      <aside class="article-toc" aria-label="目录">
+        <strong>目录</strong>
+        <a href="#why">为什么有 H.265</a>
+        <a href="#nal">HEVC NAL</a>
+        <a href="#vps">VPS/SPS/PPS</a>
+        <a href="#slice">Slice Header</a>
+        <a href="#temporal">Temporal ID</a>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <nav class="footer-links" aria-label="站点链接">
+        <a href="../index.html">解析工具</a>
+        <a href="privacy.html">隐私政策</a>
+        <a href="terms.html">使用条款</a>
+        <a href="contact.html">联系</a>
+      </nav>
+      <p class="security-notice"><strong>安全声明：</strong>解析器在浏览器本地运行，不上传码流文件。</p>
+    </div>
+  </footer>
+  <script src="../assets/site-i18n.js?v=20260526-1"></script>
+</body>
+</html>

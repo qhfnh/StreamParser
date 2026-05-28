@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H.264/H.265 码流解析示例：NAL 列表、参数集、帧类型和二进制高亮</title>
+  <meta name="description" content="展示 H.264/H.265 Annex B 裸码流解析时应关注的结果，包括 NAL 单元列表、SPS/PPS/VPS 参数集、I/P/B/IDR 帧统计、GOP 和字段二进制高亮。">
+  <meta name="robots" content="index, follow">
+  <link rel="stylesheet" href="../assets/style.css?v=20260526-1">
+</head>
+<body>
+  <div class="top-bar">
+    <div class="portal-top">
+      <a class="brand-link" href="../index.html">StreamParser</a>
+      <nav class="portal-main-nav" aria-label="主导航">
+        <a href="../index.html">解析工具</a>
+        <a href="h264-guide.html">教程</a>
+        <a class="active" href="examples.html">示例解析</a>
+        <a href="sps-pps-vps-explained.html">协议</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="portal-actions">
+        <a class="portal-action" href="../index.html">打开工具</a>
+        <div id="language-switch" class="language-switch" role="group" aria-label="Language">
+          <button type="button" class="language-btn active" data-lang="zh" aria-pressed="true">中文</button>
+          <button type="button" class="language-btn" data-lang="en" aria-pressed="false">English</button>
+        </div>
+      </div>
+    </div>
+    <div class="sub-nav-bar"><nav class="sub-nav" aria-label="二级导航"><a class="active" href="examples.html">解析示例</a></nav></div>
+  </div>
+
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <h1>码流解析示例</h1>
+      <p class="subtitle">用实际排查流程理解 NAL、参数集、帧类型和二进制字段</p>
+    </div>
+  </header>
+
+  <main class="content-page">
+    <section class="content-hero">
+      <span class="content-kicker">Examples</span>
+      <h1>解析一个裸码流时应该看什么？</h1>
+      <p class="lede">上传 H.264/H.265 Annex B 文件后，建议按“文件是否识别、参数集是否完整、帧类型是否合理、字段二进制是否对齐”的顺序检查。这样比只看单个字段值更容易定位问题。</p>
+    </section>
+
+    <article class="article-main">
+      <h2>第一步：看 NAL 单元列表</h2>
+      <p>NAL 单元列表会显示每个 NAL 的类型、名称、偏移、长度、Frame、起始码、Ref IDC 或 Layer ID、Temporal ID。常见正常码流通常会先出现参数集，例如 H.264 的 SPS/PPS 或 H.265 的 VPS/SPS/PPS，然后出现 VCL slice。</p>
+
+      <h2>第二步：看参数集详情</h2>
+      <p>参数集详情适合确认 profile、level、分辨率、裁剪窗口、VUI timing、HRD 和 bitstream restriction。若显示分辨率和预期不一致，优先检查 crop/conformance window 字段。</p>
+
+      <h2 id="frames">第三步：看帧分析和 GOP</h2>
+      <p>帧分析会统计 I/P/B/IDR 和 GOP 信息。若 Total Frames 与其他工具不同，要确认统计口径：本工具按 VCL picture/slice 信息统计，不把 SEI、SPS、PPS、VPS 等 non-VCL NAL 当作帧。</p>
+
+      <h2>第四步：点击字段看二进制高亮</h2>
+      <p>Selected NAL 中可以点击字段树节点，高亮对应 bit。对于 <code>ue(v)</code> 和 <code>se(v)</code>，高亮显示的是 Exp-Golomb codeword，不等同于普通二进制整数。H.265 中如果存在 emulation prevention byte，字段高亮可能是非连续 bit 段。</p>
+
+      <div class="resource-grid">
+        <a class="content-card" href="h264-guide.html">
+          <span class="content-kicker">H.264</span>
+          <h3>查看 H.264 字段解释</h3>
+          <p>理解 SPS/PPS、IDR、non-IDR slice 和 Ref IDC。</p>
+        </a>
+        <a class="content-card" href="h265-guide.html">
+          <span class="content-kicker">H.265</span>
+          <h3>查看 H.265 字段解释</h3>
+          <p>理解 VPS/SPS/PPS、IRAP、Layer ID 和 Temporal ID。</p>
+        </a>
+      </div>
+
+      <nav class="page-footer-nav" aria-label="相关页面">
+        <a href="../index.html">打开解析工具</a>
+        <a href="annex-b-vs-mp4.html">如何准备裸码流</a>
+        <a href="faq.html">查看常见问题</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <nav class="footer-links" aria-label="站点链接">
+        <a href="../index.html">解析工具</a>
+        <a href="privacy.html">隐私政策</a>
+        <a href="terms.html">使用条款</a>
+        <a href="contact.html">联系</a>
+      </nav>
+      <p class="security-notice"><strong>安全声明：</strong>解析器在浏览器本地运行，不上传码流文件。</p>
+    </div>
+  </footer>
+  <script src="../assets/site-i18n.js?v=20260526-1"></script>
+</body>
+</html>

@@ -29,6 +29,407 @@
   const nalBinaryRange = document.getElementById('nal-binary-range');
   const nalBinaryView = document.getElementById('nal-binary-view');
   const nalCodecHeader = document.getElementById('nal-codec-header');
+  const nalFilter = document.getElementById('nal-filter');
+  const languageButtons = document.querySelectorAll('#language-switch [data-lang]');
+
+  // === Localization ===
+  const LANGUAGE_STORAGE_KEY = 'bitstream-parser-language';
+  const DEFAULT_LANGUAGE = 'zh';
+  const I18N = {
+    zh: {
+      'document.title': 'H.264/H.265 码流解析器 - 什么是 H.264/H.265 | NAL 单元分析 | 帧类型检测',
+      'document.description': '了解什么是 H.264、什么是 H.265/HEVC，并在线解析 H.264/H.265 Annex B 裸码流。支持 NAL 单元、SPS/PPS/VPS 参数集、I/P/B/IDR 帧类型、GOP 与 SEI 消息分析，所有解析在本地浏览器执行。',
+      skip: '跳转到主要内容',
+      'app.title': 'H.264/H.265 裸码流在线解析器',
+      'app.subtitle': 'Annex B 字节流分析 - NAL 单元扫描 · 参数集深度解析 · 帧类型与 GOP 检测',
+      'nav.tool': '解析工具',
+      'nav.docs': '文档',
+      'nav.h264': 'H.264 教程',
+      'nav.h265': 'H.265 教程',
+      'nav.compare': 'H.264 vs H.265',
+      'nav.examples': '示例解析',
+      'nav.faq': 'FAQ',
+      'nav.about': '关于',
+      'nav.privacy': '隐私政策',
+      'nav.terms': '使用条款',
+      'nav.contact': '联系',
+      'portal.tools': '解析工具',
+      'portal.mainNavAria': '主导航',
+      'portal.tutorials': '教程',
+      'portal.protocol': '协议',
+      'sub.parser': '在线解析器',
+      'sub.navAria': '二级导航',
+      'docs.quickStart': '快速开始',
+      'docs.h264': 'H.264',
+      'docs.h265': 'H.265',
+      'docs.compare': 'H.264 vs H.265',
+      'docs.annex': 'Annex B / MP4',
+      'docs.params': '参数集',
+      'upload.title': '上传码流文件',
+      'upload.dropAria': '拖拽 .h264 或 .h265 文件到此处，或点击选择文件',
+      'upload.dropText': '拖拽 <strong>.h264</strong> 或 <strong>.h265</strong> 裸流文件到此处',
+      'upload.or': '- 或 -',
+      'upload.choose': '选择文件',
+      'upload.hint': '支持 Annex B 字节流格式（起始码 0x000001 / 0x00000001）',
+      'results.title': '解析结果',
+      'results.tabsAria': '解析结果分类',
+      'tabs.nal': 'NAL 单元列表',
+      'tabs.params': '参数集详情',
+      'tabs.frames': '帧分析 & GOP',
+      'tabs.sei': 'SEI 消息',
+      'inspector.aria': 'NAL 字段解析',
+      'inspector.kicker': 'Selected NAL',
+      'inspector.emptyTitle': '未选择 NAL',
+      'inspector.selectRow': '请选择一个 NAL 行。',
+      'inspector.noFields': '没有可显示的解析字段。',
+      'inspector.nalTitle': 'NAL #{index}',
+      'inspector.typeBadge': '类型 {type}',
+      'binary.title': '二进制',
+      'binary.nalTitle': '二进制 · NAL #{index}',
+      'binary.noBytesLoaded': '未加载字节。',
+      'binary.noBytesAvailable': '没有可显示的字节。',
+      'binary.allBytes': '显示全部 {total} 字节',
+      'binary.windowBytes': '显示字节 {start}-{end} / {total}（预览窗口）',
+      'table.type': '类型',
+      'table.name': '名称',
+      'table.offset': '偏移',
+      'table.length': '长度',
+      'table.frame': 'Frame',
+      'table.startCode': '起始码',
+      'table.refIdc': 'Ref IDC',
+      'table.layerId': 'Layer ID',
+      'search.placeholder': '搜索 NAL 类型、名称或 I/P/B...',
+      'summary.totalNals': 'NAL 总数',
+      'summary.totalFrames': '总帧数',
+      'summary.iFrames': 'I 帧',
+      'summary.idrFrames': 'IDR 帧',
+      'summary.pFrames': 'P 帧',
+      'summary.bFrames': 'B 帧',
+      'summary.gops': 'GOP（平均 {avg}）',
+      'summary.maxTid': '最大 Temporal ID',
+      'summary.codec': '编码格式',
+      'tree.nalUnit': 'NAL 单元',
+      'tree.header': 'Header',
+      'tree.parsedFields': '解析字段',
+      'collection.itemOne': '1 项',
+      'collection.itemMany': '{count} 项',
+      'collection.fieldOne': '1 个字段',
+      'collection.fieldMany': '{count} 个字段',
+      'collection.arrayPreview': '[{count} 项]',
+      'value.na': 'N/A',
+      'coding.codeword': '{coding} codeword {codeword} -> {value} | ',
+      'coding.codingOnly': '{coding} | ',
+      'range.bitsSingle': 'bits {start}-{end}',
+      'range.bitsMulti': 'bits {preview}{suffix}',
+      'range.bitsMore': ' +{count}',
+      'params.empty': '此码流中未找到参数集。',
+      'frames.total': 'Total',
+      'frames.gops': 'GOPs',
+      'frames.avgGopSize': '平均 GOP 长度',
+      'frames.truncated': '显示前 120 / {total} 帧',
+      'sei.empty': '未找到 SEI 消息。',
+      'sei.type': '类型 {type}',
+      'sei.meta': 'NAL #{index} · {bytes} 字节',
+      'error.title': '解析错误',
+      'error.worker': 'Worker 错误：{message}',
+      'error.workerFallback': '加载 parser-worker.js 失败',
+      'error.workerMessage': 'Worker 返回了无法读取的消息。',
+      'error.unsupportedFile': '不支持的文件类型。请上传 .h264 或 .h265 Annex B 裸码流文件。',
+      'error.startWorker': '启动解析 Worker 失败：{message}',
+      'error.readFile': '读取文件失败。',
+      'error.nal': '[NAL #{index}] {type}: {message}',
+      'error.containerMp4': '检测到 MP4/MOV 容器，请先提取原始 Annex B 裸码流。',
+      'error.containerMkv': '检测到 MKV/WebM 容器，请先提取原始 Annex B 裸码流。',
+      'error.noNal': '未找到 NAL 单元。请确认文件是原始 .h264 或 .h265 Annex B 裸码流，而不是 MP4/MKV 等容器格式。',
+      'error.unknownCodec': '无法判断编码格式（H.264 或 H.265）。码流可能已损坏，或不是可识别的格式。',
+      'error.fatalParse': '严重解析错误：{message}',
+      'file.info': '文件：{name}（{size}）',
+      'unit.bytes': '{count} 字节',
+      'resources.title': '视频码流学习与排查',
+      'resources.h264Title': 'H.264/AVC 基础指南',
+      'resources.h264Body': '了解 H.264 编码、Annex B 裸流、SPS/PPS、slice header 和常见 NAL 类型。',
+      'resources.h265Title': 'H.265/HEVC 基础指南',
+      'resources.h265Body': '理解 VPS/SPS/PPS、Temporal ID、HEVC NAL 类型和 H.265 相比 H.264 的变化。',
+      'resources.annexTitle': 'Annex B 与 MP4 容器区别',
+      'resources.annexBody': '解释为什么本工具解析裸码流，以及如何从 MP4/MKV 中提取 .h264 或 .h265。',
+      'resources.paramsTitle': '参数集字段怎么看',
+      'resources.paramsBody': '用实际字段说明分辨率、profile、level、VUI、HRD 与码流兼容性信息。',
+      'progress.scanning': '正在扫描 NAL 单元...',
+      'progress.found': '找到 {count} 个 NAL 单元，正在检测编码格式...',
+      'progress.detected': '检测到 {codec} 编码，正在解析头部...',
+      'progress.parsingNal': '正在解析 NAL {current}/{total}...',
+      'progress.gop': '正在计算 GOP 统计...',
+      'progress.preparing': '正在准备结果...',
+      'progress.complete': '解析完成。',
+      'tech.title': '关于 H.264/H.265 码流结构',
+      'tech.whatH264Title': '什么是 H.264？',
+      'tech.whatH264Body': 'H.264 又称 <strong>AVC（Advanced Video Coding）</strong>，是一种广泛使用的视频压缩编码标准。它通过帧内预测、帧间预测、变换、量化和熵编码压缩视频数据，常见于 MP4 视频、直播、视频会议、监控录像和网页视频。本工具解析的是 H.264 <strong>Annex B 裸码流</strong>，可以直接查看 NAL 单元、SPS/PPS、I/P/B/IDR 帧和二进制字段。',
+      'tech.whatH265Title': '什么是 H.265？',
+      'tech.whatH265Body': 'H.265 又称 <strong>HEVC（High Efficiency Video Coding）</strong>，是 H.264 之后的视频压缩标准。它使用更灵活的编码树单元、预测和变换结构，通常在相近画质下比 H.264 提供更高压缩效率，适合 4K、8K 和高码率视频。本工具支持解析 H.265/HEVC Annex B 裸码流中的 VPS/SPS/PPS、slice header、SEI 和 Temporal ID 等信息。',
+      'tech.nalTitle': 'NAL 单元与 Annex B 字节流',
+      'tech.nalBody': 'H.264（AVC）与 H.265（HEVC）编码的视频在传输和存储时通常采用 <strong>Annex B 字节流格式</strong>。该格式通过<strong>起始码（Start Code）</strong>来分隔连续的 NAL（Network Abstraction Layer）单元。起始码可以是 3 字节的 <code>0x000001</code> 或 4 字节的 <code>0x00000001</code>，解析器通过扫描这些特征字节序列来定位每个 NAL 单元的边界，从而完成<strong>码流解析</strong>的第一步。',
+      'tech.paramTitle': '参数集：SPS、PPS 与 VPS',
+      'tech.paramBody': 'H.264 码流中，<strong>SPS（序列参数集）</strong>包含图像分辨率（通过 <code>frame_cropping</code> 偏移量计算实际宽高）、profile 与 level 标识、色度采样格式（<code>chroma_format_idc</code>）等全局信息。H.265/HEVC 在此基础上增加了 <strong>VPS（视频参数集）</strong>，用于描述多层编码、可伸缩视频等高级特性。VPS 中的 <code>profile_tier_level</code> 结构定义了编码器的能力等级，而 <code>conformance_window</code> 标志用于从编码分辨率推导显示分辨率。',
+      'tech.frameTitle': '帧类型识别与 GOP 分析',
+      'tech.frameBody': '通过解析 VCL NAL 单元中的 <strong>Slice Header</strong>，可以提取 <code>slice_type</code> 字段，从而判断当前帧是 <strong>I 帧（帧内预测）</strong>、<strong>P 帧（前向预测）</strong> 还是 <strong>B 帧（双向预测）</strong>。连续的编码帧组成一个 <strong>GOP（Group of Pictures）</strong>，通常以 I 帧为起始。GOP 长度和结构直接影响视频的随机访问性能和压缩效率。本工具自动统计 I/P/B 帧数量与 GOP 分布，辅助分析编码器配置。',
+      'tech.seiTitle': 'SEI 消息与补充增强信息',
+      'tech.seiBody': '<strong>SEI（Supplemental Enhancement Information）</strong>负载携带不影响解码的辅助信息，常见的包括缓冲周期（<code>buffering_period</code>）、图像时序（<code>pic_timing</code>）、用户自定义数据（<code>user_data_unregistered</code>）等。这些消息在码流分析、调试和合规性检测中具有重要价值。',
+      'tech.bitstreamTitle': '位流读取与标准参照',
+      'tech.bitstreamBody': '裸码流解析的核心是<strong>基于标准的位流读取</strong>。H.264 语法参照 ITU-T H.264 (08/2024) 第 7.3 节，H.265 语法参照 ITU-T H.265 (01/2026) 第 7.3 节。本解析器实现了完整的 Exp-Golomb 熵解码、定长和变长字段读取，以及对 <code>ue(v)</code>、<code>se(v)</code> 等描述符的精确处理。所有解析逻辑在 Web Worker 中异步执行，确保大文件解析时不影响页面交互。',
+      'footer.security': '<strong>安全声明：</strong>所有文件解析仅在您的本地浏览器中执行，码流数据不会上传至任何服务器。本工具完全离线可用，无需网络连接。',
+      'footer.linksAria': '站点链接',
+      'footer.compatibility': '支持格式：H.264 Annex B 裸流（.h264）、H.265/HEVC Annex B 裸流（.h265）。不支持 MP4、MKV 等容器格式。',
+      'footer.tech': '基于 ITU-T H.264 (08/2024) 与 ITU-T H.265 (01/2026) 标准语法实现。纯原生 JavaScript，无第三方依赖，Web Worker 多线程解析。'
+    },
+    en: {
+      'document.title': 'H.264/H.265 Bitstream Analyzer - What Are H.264 and H.265 | NAL Analysis | Frame Detection',
+      'document.description': 'Learn what H.264 and H.265/HEVC are, then analyze H.264/H.265 Annex B raw bitstreams in the browser. Supports NAL units, SPS/PPS/VPS parameter sets, I/P/B/IDR frame types, GOPs, and SEI messages.',
+      skip: 'Skip to main content',
+      'app.title': 'H.264/H.265 Raw Bitstream Analyzer',
+      'app.subtitle': 'Annex B byte stream analysis - NAL scanning · parameter set parsing · frame type and GOP detection',
+      'nav.tool': 'Parser',
+      'nav.docs': 'Docs',
+      'nav.h264': 'H.264 Guide',
+      'nav.h265': 'H.265 Guide',
+      'nav.compare': 'H.264 vs H.265',
+      'nav.examples': 'Examples',
+      'nav.faq': 'FAQ',
+      'nav.about': 'About',
+      'nav.privacy': 'Privacy',
+      'nav.terms': 'Terms',
+      'nav.contact': 'Contact',
+      'portal.tools': 'Parser',
+      'portal.mainNavAria': 'Primary navigation',
+      'portal.tutorials': 'Tutorials',
+      'portal.protocol': 'Protocol',
+      'sub.parser': 'Online Parser',
+      'sub.navAria': 'Secondary navigation',
+      'docs.quickStart': 'Quick Start',
+      'docs.h264': 'H.264',
+      'docs.h265': 'H.265',
+      'docs.compare': 'H.264 vs H.265',
+      'docs.annex': 'Annex B / MP4',
+      'docs.params': 'Parameter Sets',
+      'upload.title': 'Upload Bitstream File',
+      'upload.dropAria': 'Drop a .h264 or .h265 file here, or click to choose a file',
+      'upload.dropText': 'Drop a <strong>.h264</strong> or <strong>.h265</strong> raw stream file here',
+      'upload.or': '- or -',
+      'upload.choose': 'Choose File',
+      'upload.hint': 'Supports Annex B byte streams with start codes 0x000001 / 0x00000001',
+      'results.title': 'Parse Results',
+      'results.tabsAria': 'Parse result categories',
+      'tabs.nal': 'NAL Unit List',
+      'tabs.params': 'Parameter Sets',
+      'tabs.frames': 'Frame Analysis & GOP',
+      'tabs.sei': 'SEI Messages',
+      'inspector.aria': 'NAL field parser',
+      'inspector.kicker': 'Selected NAL',
+      'inspector.emptyTitle': 'No NAL selected',
+      'inspector.selectRow': 'Select a NAL row.',
+      'inspector.noFields': 'No parsed fields.',
+      'inspector.nalTitle': 'NAL #{index}',
+      'inspector.typeBadge': 'Type {type}',
+      'binary.title': 'Binary',
+      'binary.nalTitle': 'Binary · NAL #{index}',
+      'binary.noBytesLoaded': 'No bytes loaded.',
+      'binary.noBytesAvailable': 'No bytes available.',
+      'binary.allBytes': 'Showing all {total} bytes',
+      'binary.windowBytes': 'Showing bytes {start}-{end} of {total} (preview window)',
+      'table.type': 'Type',
+      'table.name': 'Name',
+      'table.offset': 'Offset',
+      'table.length': 'Length',
+      'table.frame': 'Frame',
+      'table.startCode': 'Start Code',
+      'table.refIdc': 'Ref IDC',
+      'table.layerId': 'Layer ID',
+      'search.placeholder': 'Search NAL type, name, or I/P/B...',
+      'summary.totalNals': 'Total NAL Units',
+      'summary.totalFrames': 'Total Frames',
+      'summary.iFrames': 'I Frames',
+      'summary.idrFrames': 'IDR Frames',
+      'summary.pFrames': 'P Frames',
+      'summary.bFrames': 'B Frames',
+      'summary.gops': 'GOPs (avg {avg})',
+      'summary.maxTid': 'Max Temporal ID',
+      'summary.codec': 'Codec',
+      'tree.nalUnit': 'NAL Unit',
+      'tree.header': 'Header',
+      'tree.parsedFields': 'Parsed Fields',
+      'collection.itemOne': '1 item',
+      'collection.itemMany': '{count} items',
+      'collection.fieldOne': '1 field',
+      'collection.fieldMany': '{count} fields',
+      'collection.arrayPreview': '[{count} items]',
+      'value.na': 'N/A',
+      'coding.codeword': '{coding} codeword {codeword} -> {value} | ',
+      'coding.codingOnly': '{coding} | ',
+      'range.bitsSingle': 'bits {start}-{end}',
+      'range.bitsMulti': 'bits {preview}{suffix}',
+      'range.bitsMore': ' +{count}',
+      'params.empty': 'No parameter sets found in this bitstream.',
+      'frames.total': 'Total',
+      'frames.gops': 'GOPs',
+      'frames.avgGopSize': 'Avg GOP Size',
+      'frames.truncated': 'Showing first 120 of {total} frames',
+      'sei.empty': 'No SEI messages found.',
+      'sei.type': 'Type {type}',
+      'sei.meta': 'NAL #{index} · {bytes} bytes',
+      'error.title': 'Parse Error',
+      'error.worker': 'Worker error: {message}',
+      'error.workerFallback': 'failed to load parser-worker.js',
+      'error.workerMessage': 'Worker returned an unreadable message.',
+      'error.unsupportedFile': 'Unsupported file type. Please upload a .h264 or .h265 raw Annex B bitstream file.',
+      'error.startWorker': 'Failed to start parser worker: {message}',
+      'error.readFile': 'Failed to read file.',
+      'error.nal': '[NAL #{index}] {type}: {message}',
+      'error.containerMp4': 'MP4/MOV container detected. Please extract the raw Annex B bitstream first.',
+      'error.containerMkv': 'MKV/WebM container detected. Please extract the raw Annex B bitstream first.',
+      'error.noNal': 'No NAL units found. This may not be a valid Annex B bitstream. Check that the file is a raw .h264 or .h265 file, not a container format (MP4/MKV).',
+      'error.unknownCodec': 'Could not determine codec (H.264 or H.265). The bitstream may be corrupted or is not a recognized format.',
+      'error.fatalParse': 'Fatal parse error: {message}',
+      'file.info': 'File: {name} ({size})',
+      'unit.bytes': '{count} bytes',
+      'resources.title': 'Bitstream Learning and Troubleshooting',
+      'resources.h264Title': 'H.264/AVC Basics',
+      'resources.h264Body': 'Learn H.264 coding, Annex B raw streams, SPS/PPS, slice headers, and common NAL unit types.',
+      'resources.h265Title': 'H.265/HEVC Basics',
+      'resources.h265Body': 'Understand VPS/SPS/PPS, Temporal ID, HEVC NAL types, and the main changes from H.264 to H.265.',
+      'resources.annexTitle': 'Annex B vs MP4 Containers',
+      'resources.annexBody': 'Why this tool parses raw streams, and how to extract .h264 or .h265 data from MP4/MKV files.',
+      'resources.paramsTitle': 'Reading Parameter Sets',
+      'resources.paramsBody': 'Use real syntax elements to inspect resolution, profile, level, VUI, HRD, and stream compatibility information.',
+      'progress.scanning': 'Scanning NAL units...',
+      'progress.found': 'Found {count} NAL units, detecting codec...',
+      'progress.detected': 'Detected {codec} codec. Parsing headers...',
+      'progress.parsingNal': 'Parsing NAL {current}/{total}...',
+      'progress.gop': 'Computing GOP statistics...',
+      'progress.preparing': 'Preparing results...',
+      'progress.complete': 'Parse complete.',
+      'tech.title': 'About H.264/H.265 Bitstream Structure',
+      'tech.whatH264Title': 'What Is H.264?',
+      'tech.whatH264Body': 'H.264, also known as <strong>AVC (Advanced Video Coding)</strong>, is a widely used video compression standard. It reduces video size through intra prediction, inter prediction, transform, quantization, and entropy coding, and is common in MP4 video, streaming, video conferencing, surveillance recordings, and web video. This tool analyzes H.264 <strong>Annex B raw streams</strong> so you can inspect NAL units, SPS/PPS, I/P/B/IDR frames, and binary fields.',
+      'tech.whatH265Title': 'What Is H.265?',
+      'tech.whatH265Body': 'H.265, also known as <strong>HEVC (High Efficiency Video Coding)</strong>, is the successor to H.264. It uses more flexible coding tree units, prediction, and transform structures, and usually delivers better compression at similar visual quality. It is common in 4K, 8K, and high-bitrate video workflows. This tool parses VPS/SPS/PPS, slice headers, SEI messages, and Temporal ID data from H.265/HEVC Annex B raw streams.',
+      'tech.nalTitle': 'NAL Units and Annex B Byte Streams',
+      'tech.nalBody': 'H.264 (AVC) and H.265 (HEVC) video streams commonly use the <strong>Annex B byte stream format</strong> for transport and storage. This format separates consecutive NAL (Network Abstraction Layer) units with a <strong>Start Code</strong>. Start codes can be 3-byte <code>0x000001</code> or 4-byte <code>0x00000001</code> sequences, and the analyzer scans them to locate each NAL boundary.',
+      'tech.paramTitle': 'Parameter Sets: SPS, PPS, and VPS',
+      'tech.paramBody': 'In H.264 streams, <strong>SPS (Sequence Parameter Set)</strong> carries global information such as coded dimensions, profile and level identifiers, and chroma format. H.265/HEVC adds <strong>VPS (Video Parameter Set)</strong> for higher-level properties such as layered or scalable coding. Structures such as <code>profile_tier_level</code> and <code>conformance_window</code> are exposed using their protocol syntax element names.',
+      'tech.frameTitle': 'Frame Type Detection and GOP Analysis',
+      'tech.frameBody': 'By parsing the <strong>Slice Header</strong> in VCL NAL units, the tool extracts <code>slice_type</code> and identifies <strong>I</strong>, <strong>P</strong>, <strong>B</strong>, and <strong>IDR</strong> frames. Consecutive coded pictures form a <strong>GOP (Group of Pictures)</strong>, whose length and layout affect random access and compression behavior.',
+      'tech.seiTitle': 'SEI Messages and Supplemental Information',
+      'tech.seiBody': '<strong>SEI (Supplemental Enhancement Information)</strong> messages carry auxiliary data that does not directly affect decoding, such as <code>buffering_period</code>, <code>pic_timing</code>, and <code>user_data_unregistered</code>. These messages are useful for stream analysis, debugging, and conformance checks.',
+      'tech.bitstreamTitle': 'Bitstream Reading and Standards',
+      'tech.bitstreamBody': 'Raw bitstream parsing depends on <strong>standards-based bit reading</strong>. H.264 syntax follows ITU-T H.264 (08/2024) section 7.3, and H.265 syntax follows ITU-T H.265 (01/2026) section 7.3. The analyzer implements fixed-width fields, Exp-Golomb decoding, and accurate handling for descriptors such as <code>ue(v)</code> and <code>se(v)</code> inside a Web Worker.',
+      'footer.security': '<strong>Security:</strong> files are parsed only in your local browser. Bitstream data is not uploaded to any server, and the tool works offline after the page loads.',
+      'footer.linksAria': 'Site links',
+      'footer.compatibility': 'Supported formats: H.264 Annex B raw streams (.h264) and H.265/HEVC Annex B raw streams (.h265). MP4, MKV, and other container formats are not supported.',
+      'footer.tech': 'Implemented with ITU-T H.264 (08/2024) and ITU-T H.265 (01/2026) syntax. Native JavaScript only, no third-party dependencies, with parsing in a Web Worker.'
+    }
+  };
+  let currentLanguage = getInitialLanguage();
+
+  function getInitialLanguage() {
+    try {
+      const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (stored === 'zh' || stored === 'en') return stored;
+    } catch (err) {
+      // Ignore storage errors in private or restricted browser contexts.
+    }
+    return DEFAULT_LANGUAGE;
+  }
+
+  function t(key, params = {}) {
+    const dict = I18N[currentLanguage] || I18N[DEFAULT_LANGUAGE];
+    const fallback = I18N[DEFAULT_LANGUAGE][key];
+    const template = dict[key] || fallback || key;
+    return template.replace(/\{(\w+)\}/g, function (_, name) {
+      return Object.prototype.hasOwnProperty.call(params, name) ? String(params[name]) : `{${name}}`;
+    });
+  }
+
+  function setLanguage(lang) {
+    if (!I18N[lang]) return;
+    currentLanguage = lang;
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+    } catch (err) {
+      // UI language still switches even if storage is unavailable.
+    }
+    applyTranslations();
+    updateLanguageButtons();
+    if (parseResults) {
+      const selected = selectedNalIndex;
+      renderAll(parseResults, { preserveScroll: true, preserveSelection: selected });
+    } else {
+      clearNALInspector();
+    }
+  }
+
+  function applyTranslations() {
+    document.documentElement.lang = currentLanguage === 'zh' ? 'zh-CN' : 'en';
+    document.title = t('document.title');
+    const description = document.querySelector('meta[name="description"]');
+    if (description) description.setAttribute('content', t('document.description'));
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      el.innerHTML = t(el.dataset.i18nHtml);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      el.setAttribute('placeholder', t(el.dataset.i18nPlaceholder));
+    });
+    document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+      el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel));
+    });
+    updateCodecHeader();
+  }
+
+  function updateLanguageButtons() {
+    languageButtons.forEach(btn => {
+      const active = btn.dataset.lang === currentLanguage;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function updateCodecHeader() {
+    if (!nalCodecHeader) return;
+    nalCodecHeader.textContent = codec === 'H265' ? t('table.layerId') : t('table.refIdc');
+  }
+
+  function translateProgressMessage(message) {
+    if (!message) return '';
+    let match = String(message).match(/^Found\s+(\d+)\s+NAL units, detecting codec\.\.\.$/);
+    if (match) return t('progress.found', { count: match[1] });
+    match = String(message).match(/^Detected\s+(H26[45])\s+codec\. Parsing headers\.\.\.$/);
+    if (match) return t('progress.detected', { codec: match[1] });
+    match = String(message).match(/^Parsing NAL\s+(\d+)\/(\d+)\.\.\.$/);
+    if (match) return t('progress.parsingNal', { current: match[1], total: match[2] });
+    const exact = {
+      'Scanning NAL units...': 'progress.scanning',
+      'Computing GOP statistics...': 'progress.gop',
+      'Preparing results...': 'progress.preparing',
+      'Parse complete.': 'progress.complete'
+    };
+    return exact[message] ? t(exact[message]) : message;
+  }
+
+  function translateWorkerError(message) {
+    if (!message) return '';
+    const exact = {
+      'MP4/MOV container detected — please extract the raw Annex B bitstream first': 'error.containerMp4',
+      'MKV/WebM container detected — please extract the raw Annex B bitstream first': 'error.containerMkv',
+      'No NAL units found. This may not be a valid Annex B bitstream. Check that the file is a raw .h264 or .h265 file, not a container format (MP4/MKV).': 'error.noNal',
+      'Could not determine codec (H.264 or H.265). The bitstream may be corrupted or is not a recognized format.': 'error.unknownCodec'
+    };
+    if (exact[message]) return t(exact[message]);
+    const fatal = String(message).match(/^Fatal parse error:\s*(.+)$/);
+    if (fatal) return t('error.fatalParse', { message: fatal[1] });
+    return message;
+  }
 
   // === Worker ===
   let worker = null;
@@ -37,17 +438,26 @@
   let selectedNalIndex = null;
   let activeFieldPath = null;
 
+  languageButtons.forEach(btn => {
+    btn.addEventListener('click', function () {
+      setLanguage(this.dataset.lang);
+    });
+  });
+  applyTranslations();
+  updateLanguageButtons();
+  clearNALInspector();
+
   function ensureWorker() {
     if (!worker) {
-      worker = new Worker('parser-worker.js?v=20260524-8');
+      worker = new Worker('assets/parser-worker.js?v=20260526-1');
       worker.onmessage = handleWorkerMessage;
       worker.onerror = function (event) {
         showProgress(false);
-        showError(`Worker error: ${event.message || 'failed to load parser-worker.js'}`);
+        showError(t('error.worker', { message: event.message || t('error.workerFallback') }));
       };
       worker.onmessageerror = function () {
         showProgress(false);
-        showError('Worker returned an unreadable message.');
+        showError(t('error.workerMessage'));
       };
     }
     return worker;
@@ -113,11 +523,11 @@
     const isValid = validExts.some(ext => name.endsWith(ext));
 
     if (!isValid) {
-      showError('Unsupported file type. Please upload a .h264 or .h265 raw Annex B bitstream file.');
+      showError(t('error.unsupportedFile'));
       return;
     }
 
-    fileInfo.textContent = `File: ${file.name} (${formatFileSize(file.size)})`;
+    fileInfo.textContent = t('file.info', { name: file.name, size: formatFileSize(file.size) });
     resetUI();
     showProgress(true);
 
@@ -128,11 +538,11 @@
         w.postMessage({ type: 'parse', buffer: reader.result }, [reader.result]);
       } catch (err) {
         showProgress(false);
-        showError(`Failed to start parser worker: ${err.message}`);
+        showError(t('error.startWorker', { message: err.message }));
       }
     };
     reader.onerror = function () {
-      showError('Failed to read file.');
+      showError(t('error.readFile'));
     };
     reader.readAsArrayBuffer(file);
   }
@@ -146,7 +556,7 @@
         updateProgress(e.data.progress, e.data.message);
         break;
       case 'error':
-        showError(e.data.message);
+        showError(translateWorkerError(e.data.message));
         showProgress(false);
         break;
       case 'result':
@@ -161,7 +571,8 @@
   // === Progress ===
   function updateProgress(pct, msg) {
     progressFill.style.width = pct + '%';
-    progressText.textContent = msg ? `${msg} (${pct}%)` : `${pct}%`;
+    const localized = translateProgressMessage(msg);
+    progressText.textContent = localized ? `${localized} (${pct}%)` : `${pct}%`;
   }
 
   function showProgress(visible) {
@@ -173,7 +584,7 @@
   }
 
   // === Render All Results ===
-  function renderAll(data) {
+  function renderAll(data, options = {}) {
     renderSummary(data.summary);
     renderNALTable(data.nals, data.codec);
     renderParams(data.paramSets, data.codec);
@@ -201,13 +612,16 @@
     });
 
     if (data.nals.length > 0) {
-      selectNAL(data.nals[0].index);
+      const targetNal = options.preserveSelection != null ? options.preserveSelection : data.nals[0].index;
+      selectNAL(targetNal);
     } else {
       clearNALInspector();
     }
 
     // Scroll to results
-    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!options.preserveScroll) {
+      resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   // === Summary Stats ===
@@ -215,39 +629,39 @@
     summaryStats.innerHTML = `
       <div class="stat-card stat-total">
         <div class="stat-value">${summary.totalNALs}</div>
-        <div class="stat-label">Total NAL Units</div>
+        <div class="stat-label">${t('summary.totalNals')}</div>
       </div>
       <div class="stat-card stat-total">
         <div class="stat-value">${summary.totalFrames}</div>
-        <div class="stat-label">Total Frames</div>
+        <div class="stat-label">${t('summary.totalFrames')}</div>
       </div>
       <div class="stat-card stat-i">
         <div class="stat-value">${summary.iFrames}</div>
-        <div class="stat-label">I Frames</div>
+        <div class="stat-label">${t('summary.iFrames')}</div>
       </div>
       <div class="stat-card stat-idr">
         <div class="stat-value">${summary.idrFrames || 0}</div>
-        <div class="stat-label">IDR Frames</div>
+        <div class="stat-label">${t('summary.idrFrames')}</div>
       </div>
       <div class="stat-card stat-p">
         <div class="stat-value">${summary.pFrames}</div>
-        <div class="stat-label">P Frames</div>
+        <div class="stat-label">${t('summary.pFrames')}</div>
       </div>
       <div class="stat-card stat-b">
         <div class="stat-value">${summary.bFrames}</div>
-        <div class="stat-label">B Frames</div>
+        <div class="stat-label">${t('summary.bFrames')}</div>
       </div>
       <div class="stat-card stat-gop">
         <div class="stat-value">${summary.gopCount}</div>
-        <div class="stat-label">GOPs (avg ${summary.avgGopSize})</div>
+        <div class="stat-label">${t('summary.gops', { avg: summary.avgGopSize })}</div>
       </div>
       <div class="stat-card stat-total">
         <div class="stat-value">${summary.maxTemporalId}</div>
-        <div class="stat-label">Max Temporal ID</div>
+        <div class="stat-label">${t('summary.maxTid')}</div>
       </div>
       <div class="stat-card stat-total">
         <div class="stat-value">${summary.codec}</div>
-        <div class="stat-label">Codec</div>
+        <div class="stat-label">${t('summary.codec')}</div>
       </div>
     `;
   }
@@ -256,7 +670,7 @@
   function renderNALTable(nals, codec) {
     const isH265 = codec === 'H265';
 
-    nalCodecHeader.textContent = isH265 ? 'Layer ID' : 'Ref IDC';
+    updateCodecHeader();
 
     let html = '';
     for (const nal of nals) {
@@ -368,7 +782,7 @@
   }
 
   // NAL filter
-  document.getElementById('nal-filter').addEventListener('input', function () {
+  nalFilter.addEventListener('input', function () {
     const query = normalizeSearchText(this.value);
     const frameTypeQuery = getFrameTypeSearchQuery(query);
     const rows = document.querySelectorAll('#nal-tbody tr');
@@ -449,12 +863,12 @@
   function clearNALInspector() {
     selectedNalIndex = null;
     activeFieldPath = null;
-    nalDetailTitle.textContent = 'No NAL selected';
+    nalDetailTitle.textContent = t('inspector.emptyTitle');
     nalDetailBadge.textContent = '-';
-    nalFieldList.innerHTML = '<div class="empty-state">Select a NAL row.</div>';
-    nalBinaryTitle.textContent = 'Binary';
+    nalFieldList.innerHTML = `<div class="empty-state">${t('inspector.selectRow')}</div>`;
+    nalBinaryTitle.textContent = t('binary.title');
     nalBinaryRange.textContent = '';
-    nalBinaryView.innerHTML = '<div class="empty-state">No bytes loaded.</div>';
+    nalBinaryView.innerHTML = `<div class="empty-state">${t('binary.noBytesLoaded')}</div>`;
   }
 
   const FLAG_GROUP_RULES = [
@@ -763,12 +1177,12 @@
   ];
 
   function renderNALInspector(nal) {
-    nalDetailTitle.textContent = `NAL #${nal.index + 1}`;
-    nalDetailBadge.textContent = `Type ${nal.nal_unit_type}`;
+    nalDetailTitle.textContent = t('inspector.nalTitle', { index: nal.index + 1 });
+    nalDetailBadge.textContent = t('inspector.typeBadge', { type: nal.nal_unit_type });
 
     const fieldTree = buildNALFieldTree(nal);
     if (fieldTree.length === 0) {
-      nalFieldList.innerHTML = '<div class="empty-state">No parsed fields.</div>';
+      nalFieldList.innerHTML = `<div class="empty-state">${t('inspector.noFields')}</div>`;
     } else {
       nalFieldList.innerHTML = renderFieldTree(fieldTree);
     }
@@ -786,11 +1200,11 @@
       type: nal.nal_unit_type,
       name: nal.type_name,
       offset: formatHexOffset(nal.offset),
-      length: `${nal.length.toLocaleString()} bytes`,
-      start_code_length: `${nal.startCodeLen} bytes`,
-      trailing_zero_length: `${nal.trailingZeroLen || 0} bytes`,
+      length: t('unit.bytes', { count: nal.length.toLocaleString() }),
+      start_code_length: t('unit.bytes', { count: nal.startCodeLen }),
+      trailing_zero_length: t('unit.bytes', { count: nal.trailingZeroLen || 0 }),
       payload_offset: nal.payloadOffset == null ? null : formatHexOffset(nal.payloadOffset),
-      payload_length: nal.payloadLength == null ? null : `${nal.payloadLength.toLocaleString()} bytes`,
+      payload_length: nal.payloadLength == null ? null : t('unit.bytes', { count: nal.payloadLength.toLocaleString() }),
       frame_type: getNALFrameType(nal),
       temporal_id: nal.temporal_id
     };
@@ -799,14 +1213,14 @@
     } else {
       metadata.ref_idc = nal.nal_ref_idc;
     }
-    mergeObjectIntoTree(addRootNode(roots, rootMap, 'nal', 'NAL Unit'), metadata, 'nal', fieldRanges);
+    mergeObjectIntoTree(addRootNode(roots, rootMap, 'nal', t('tree.nalUnit')), metadata, 'nal', fieldRanges);
 
     if (nal.header && typeof nal.header === 'object') {
-      mergeObjectIntoTree(addRootNode(roots, rootMap, 'header', 'Header'), nal.header, 'header', fieldRanges);
+      mergeObjectIntoTree(addRootNode(roots, rootMap, 'header', t('tree.header')), nal.header, 'header', fieldRanges);
     }
 
     if (nal.parseResult && typeof nal.parseResult === 'object') {
-      mergeObjectIntoTree(addRootNode(roots, rootMap, 'parseResult', 'Parsed Fields'), nal.parseResult, 'parseResult', fieldRanges);
+      mergeObjectIntoTree(addRootNode(roots, rootMap, 'parseResult', t('tree.parsedFields')), nal.parseResult, 'parseResult', fieldRanges);
     }
 
     mergeFieldMapIntoTree(roots, rootMap, nal);
@@ -875,7 +1289,7 @@
       return;
     }
 
-    parent.value = value == null ? 'N/A' : value;
+    parent.value = value == null ? t('value.na') : value;
   }
 
   function mergeValueIntoTree(parent, label, path, value, fieldRanges) {
@@ -1118,9 +1532,9 @@
   function formatCodingText(range, value) {
     if (!range.coding) return '';
     if ((range.coding === 'ue(v)' || range.coding === 'se(v)') && range.codeword) {
-      return `${range.coding} codeword ${range.codeword} -> ${formatDisplayValue(value)} | `;
+      return t('coding.codeword', { coding: range.coding, codeword: range.codeword, value: formatDisplayValue(value) });
     }
-    return `${range.coding} | `;
+    return t('coding.codingOnly', { coding: range.coding });
   }
 
   function renderFieldRangeAttrs(path, range) {
@@ -1133,25 +1547,25 @@
     const segments = getRangeSegments(range);
     if (segments.length === 0) return '';
     if (segments.length === 1) {
-      return `bits ${segments[0].startBit}-${segments[0].endBit - 1}`;
+      return t('range.bitsSingle', { start: segments[0].startBit, end: segments[0].endBit - 1 });
     }
     const preview = segments.slice(0, 2).map(segment => `${segment.startBit}-${segment.endBit - 1}`).join(', ');
-    const suffix = segments.length > 2 ? ` +${segments.length - 2}` : '';
-    return `bits ${preview}${suffix}`;
+    const suffix = segments.length > 2 ? t('range.bitsMore', { count: segments.length - 2 }) : '';
+    return t('range.bitsMulti', { preview, suffix });
   }
 
   function describeCollection(value) {
     if (Array.isArray(value)) {
-      return value.length === 1 ? '1 item' : `${value.length} items`;
+      return value.length === 1 ? t('collection.itemOne') : t('collection.itemMany', { count: value.length });
     }
     const count = Object.keys(value || {}).length;
-    return count === 1 ? '1 field' : `${count} fields`;
+    return count === 1 ? t('collection.fieldOne') : t('collection.fieldMany', { count });
   }
 
   function rootLabel(path) {
-    if (path === 'header') return 'Header';
-    if (path === 'parseResult') return 'Parsed Fields';
-    if (path === 'nal') return 'NAL Unit';
+    if (path === 'header') return t('tree.header');
+    if (path === 'parseResult') return t('tree.parsedFields');
+    if (path === 'nal') return t('tree.nalUnit');
     return path;
   }
 
@@ -1256,17 +1670,17 @@
 
   function renderBinaryView(nal, range) {
     const bytes = nal.bytes || [];
-    nalBinaryTitle.textContent = `Binary · NAL #${nal.index + 1}`;
+    nalBinaryTitle.textContent = t('binary.nalTitle', { index: nal.index + 1 });
     if (bytes.length === 0) {
       nalBinaryRange.textContent = '';
-      nalBinaryView.innerHTML = '<div class="empty-state">No bytes available.</div>';
+      nalBinaryView.innerHTML = `<div class="empty-state">${t('binary.noBytesAvailable')}</div>`;
       return;
     }
 
     const win = getBinaryWindow(bytes.length, range);
     nalBinaryRange.textContent = range
       ? formatRangeText(range)
-      : `${bytes.length.toLocaleString()} bytes`;
+      : t('unit.bytes', { count: bytes.length.toLocaleString() });
 
     let html = '';
     html += `<div class="binary-note">${formatBinaryWindowNote(win, bytes.length)}</div>`;
@@ -1305,9 +1719,9 @@
     const shownEnd = (win.end - 1).toLocaleString();
     const total = totalBytes.toLocaleString();
     if (win.start === 0 && win.end === totalBytes) {
-      return `Showing all ${total} bytes`;
+      return t('binary.allBytes', { total });
     }
-    return `Showing bytes ${shownStart}-${shownEnd} of ${total} (preview window)`;
+    return t('binary.windowBytes', { start: shownStart, end: shownEnd, total });
   }
 
   function getBinaryWindow(totalBytes, range) {
@@ -1326,7 +1740,7 @@
     if (Array.isArray(value)) {
       if (value.length === 0) return '[]';
       if (value.length <= 6) return JSON.stringify(value);
-      return `[${value.length} items]`;
+      return t('collection.arrayPreview', { count: value.length });
     }
     if (typeof value === 'boolean') return value ? 'true' : 'false';
     if (typeof value === 'number') return Number.isInteger(value) ? value.toString() : value.toFixed(4);
@@ -1355,7 +1769,7 @@
     }
 
     if (!html) {
-      html = '<p style="color: var(--text-muted); padding: 16px;">No parameter sets found in this bitstream.</p>';
+      html = `<p style="color: var(--text-muted); padding: 16px;">${t('params.empty')}</p>`;
     }
 
     container.innerHTML = html;
@@ -1389,11 +1803,11 @@
     for (const [key, value] of Object.entries(obj)) {
       const fullKey = prefix ? `${prefix}.${key}` : key;
       if (value === null || value === undefined) {
-        items.push({ key: fullKey, value: 'N/A' });
+        items.push({ key: fullKey, value: t('value.na') });
       } else if (typeof value === 'object' && !Array.isArray(value)) {
         items.push(...formatParamObject(value, fullKey));
       } else if (Array.isArray(value) && value.length > 20) {
-        items.push({ key: fullKey, value: `[${value.length} items]` });
+        items.push({ key: fullKey, value: t('collection.arrayPreview', { count: value.length }) });
       } else if (Array.isArray(value)) {
         items.push({ key: fullKey, value: JSON.stringify(value) });
       } else if (typeof value === 'boolean') {
@@ -1412,13 +1826,13 @@
     // Stats
     const statsDiv = document.getElementById('frames-stats');
     statsDiv.innerHTML = `
-      <div class="frame-stat"><div class="fs-val" style="color:var(--green)">${summary.iFrames}</div><div class="fs-label">I Frames</div></div>
-      <div class="frame-stat"><div class="fs-val" style="color:var(--cyan)">${summary.idrFrames || 0}</div><div class="fs-label">IDR Frames</div></div>
-      <div class="frame-stat"><div class="fs-val" style="color:var(--orange)">${summary.pFrames}</div><div class="fs-label">P Frames</div></div>
-      <div class="frame-stat"><div class="fs-val" style="color:var(--purple)">${summary.bFrames}</div><div class="fs-label">B Frames</div></div>
-      <div class="frame-stat"><div class="fs-val">${summary.totalFrames}</div><div class="fs-label">Total</div></div>
-      <div class="frame-stat"><div class="fs-val">${gopInfo.totalGOPs}</div><div class="fs-label">GOPs</div></div>
-      <div class="frame-stat"><div class="fs-val">${summary.avgGopSize}</div><div class="fs-label">Avg GOP Size</div></div>
+      <div class="frame-stat"><div class="fs-val" style="color:var(--green)">${summary.iFrames}</div><div class="fs-label">${t('summary.iFrames')}</div></div>
+      <div class="frame-stat"><div class="fs-val" style="color:var(--cyan)">${summary.idrFrames || 0}</div><div class="fs-label">${t('summary.idrFrames')}</div></div>
+      <div class="frame-stat"><div class="fs-val" style="color:var(--orange)">${summary.pFrames}</div><div class="fs-label">${t('summary.pFrames')}</div></div>
+      <div class="frame-stat"><div class="fs-val" style="color:var(--purple)">${summary.bFrames}</div><div class="fs-label">${t('summary.bFrames')}</div></div>
+      <div class="frame-stat"><div class="fs-val">${summary.totalFrames}</div><div class="fs-label">${t('frames.total')}</div></div>
+      <div class="frame-stat"><div class="fs-val">${gopInfo.totalGOPs}</div><div class="fs-label">${t('frames.gops')}</div></div>
+      <div class="frame-stat"><div class="fs-val">${summary.avgGopSize}</div><div class="fs-label">${t('frames.avgGopSize')}</div></div>
     `;
 
     // GOP bar chart (show first 120 frames)
@@ -1431,7 +1845,7 @@
     }
     chartHtml += '</div>';
     if (frames.length > 120) {
-      chartHtml += `<p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:16px;">Showing first 120 of ${frames.length} frames</p>`;
+      chartHtml += `<p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:16px;">${t('frames.truncated', { total: frames.length })}</p>`;
     }
     statsDiv.insertAdjacentHTML('beforeend', chartHtml);
 
@@ -1458,7 +1872,7 @@
   function renderSEI(seiMessages) {
     const container = document.getElementById('sei-content');
     if (seiMessages.length === 0) {
-      container.innerHTML = '<p style="color: var(--text-muted); padding: 16px;">No SEI messages found.</p>';
+      container.innerHTML = `<p style="color: var(--text-muted); padding: 16px;">${t('sei.empty')}</p>`;
       return;
     }
 
@@ -1467,8 +1881,8 @@
       html += `<div class="sei-item">
         <div class="sei-item-header">
           <span class="badge" style="background:var(--cyan);color:#000;font-size:0.78rem;padding:2px 8px;border-radius:10px;">SEI</span>
-          <span class="sei-type">${escapeHtml(sei.name || `Type ${sei.payloadType}`)}</span>
-          <span style="color:var(--text-muted);font-size:0.82rem;">NAL #${sei.nalIndex + 1} · ${sei.payloadSize} bytes</span>
+          <span class="sei-type">${escapeHtml(sei.name || t('sei.type', { type: sei.payloadType }))}</span>
+          <span style="color:var(--text-muted);font-size:0.82rem;">${escapeHtml(t('sei.meta', { index: sei.nalIndex + 1, bytes: sei.payloadSize }))}</span>
         </div>
         <div class="sei-item-body">${escapeHtml(JSON.stringify(sei, null, 2))}</div>
       </div>`;
@@ -1483,7 +1897,7 @@
       return;
     }
     errorSection.hidden = false;
-    const lines = errors.map(e => `[NAL #${e.nalIndex + 1}] ${e.type}: ${e.error}`);
+    const lines = errors.map(e => t('error.nal', { index: e.nalIndex + 1, type: e.type, message: e.error }));
     errorContent.textContent = lines.join('\n');
   }
 
