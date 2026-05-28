@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, '..');
 const robotsPath = path.join(root, 'robots.txt');
 const sitemapPath = path.join(root, 'sitemap.xml');
 const scriptPath = path.join(root, 'scripts', 'generate-sitemap.js');
+const vercelConfigPath = path.join(root, 'vercel.json');
 
 const originalRobots = fs.existsSync(robotsPath) ? fs.readFileSync(robotsPath, 'utf8') : null;
 const originalSitemap = fs.existsSync(sitemapPath) ? fs.readFileSync(sitemapPath, 'utf8') : null;
@@ -32,6 +33,11 @@ try {
   assert(robots.includes('User-agent: *'), 'robots.txt should keep crawler rules');
   assert(robots.includes('Allow: /'), 'robots.txt should allow crawling');
   assert(robots.includes('Sitemap: https://example.com/sitemap.xml'), 'robots.txt should expose the generated sitemap URL');
+
+  const vercelConfig = JSON.parse(fs.readFileSync(vercelConfigPath, 'utf8'));
+  assert.strictEqual(vercelConfig.framework, null, 'Vercel should use the Other framework preset');
+  assert.strictEqual(vercelConfig.buildCommand, 'npm run build', 'Vercel should run the sitemap build script');
+  assert.strictEqual(vercelConfig.outputDirectory, '.', 'Vercel should serve the static root directory');
 } finally {
   if (originalRobots === null) {
     fs.rmSync(robotsPath, { force: true });

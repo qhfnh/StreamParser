@@ -86,7 +86,13 @@ Build Command 设置为：
 npm run build
 ```
 
-构建会根据 `SITE_URL` 在站点根目录生成 `sitemap.xml`，并在 `robots.txt` 中写入对应的 Sitemap 地址。Bing 站长平台可提交 `https://your-domain.com/sitemap.xml`。
+Output Directory 使用项目根目录：
+
+```text
+.
+```
+
+构建会根据 `SITE_URL` 在站点根目录生成 `sitemap.xml`，并在 `robots.txt` 中写入对应的 Sitemap 地址。
 
 ## 测试
 
