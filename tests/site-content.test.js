@@ -19,7 +19,9 @@ const requiredPages = [
 for (const page of requiredPages) {
   assert(fs.existsSync(page), `${page} should exist`);
   const html = fs.readFileSync(page, 'utf8');
+  const canonicalPath = `/${page.replace(/\\/g, '/')}`;
   assert(html.includes('<meta name="description"'), `${page} should have a meta description`);
+  assert(html.includes(`<link rel="canonical" href="${canonicalPath}">`), `${page} should have a root-relative canonical URL`);
   assert(html.includes('class="top-bar"'), `${page} should have a separate top navigation bar`);
   assert(html.includes('portal-main-nav'), `${page} should have portal top navigation`);
   assert(html.includes('class="sub-nav-bar"'), `${page} should have a secondary navigation bar`);
@@ -44,6 +46,8 @@ assert(index.includes('class="sub-nav-bar"'), 'home page should have a secondary
 assert(index.includes('data-i18n="sub.parser"'), 'home secondary navigation should describe parser children');
 assert(index.includes('href="assets/style.css?v=20260526-1"'), 'home page should load CSS from assets/');
 assert(index.includes('src="assets/main.js?v=20260526-1"'), 'home page should load JS from assets/');
+assert(index.includes('<link rel="canonical" href="/">'), 'home page should have a root canonical URL');
+assert(!index.includes('<meta name="keywords"'), 'home page should not use the deprecated keywords meta tag');
 assert(!index.includes('class="portal-menu"'), 'home page should not keep the removed common-entry menu');
 assert(index.includes('data-i18n="portal.tools">解析工具</a>'), 'home primary navigation should consistently label the parser entry');
 assert(index.includes('data-i18n="portal.tutorials"'), 'home primary navigation should include the tutorials category');
@@ -86,7 +90,10 @@ for (const file of htmlFiles) {
     if (href.startsWith('#') || href.startsWith('http:') || href.startsWith('https:') || href.startsWith('mailto:')) continue;
     const target = href.split('#')[0].split('?')[0];
     if (!target) continue;
-    assert(fs.existsSync(path.resolve(path.dirname(file), target)), `${file} links to missing local target ${href}`);
+    const targetPath = target.startsWith('/')
+      ? path.join(process.cwd(), target)
+      : path.resolve(path.dirname(file), target);
+    assert(fs.existsSync(targetPath), `${file} links to missing local target ${href}`);
   }
 }
 

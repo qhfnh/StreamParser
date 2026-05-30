@@ -41,7 +41,7 @@
 │   ├── ouput.h264
 │   └── outp.h265
 ├── scripts/
-│   └── generate-sitemap.js # 根据 SITE_URL 生成 sitemap.xml 和 robots.txt
+│   └── generate-sitemap.js # 根据 SITE_URL 和页面修改时间生成 sitemap.xml 与 robots.txt
 ├── robots.txt              # 搜索引擎抓取规则
 ├── ads.txt                 # Google AdSense 授权文件
 ├── BingSiteAuth.xml        # Bing 站点验证文件
@@ -110,7 +110,7 @@ node --check assets/site-i18n.js
 npm test
 ```
 
-测试覆盖内容包括字段映射、二进制高亮、H.264/H.265 样本解析、布局约束、UI 文本约束和内容页中英文切换约束。
+测试覆盖内容包括字段映射、二进制高亮、H.264/H.265 样本解析、布局约束、UI 文本约束、SEO 元信息、sitemap 生成和内容页中英文切换约束。
 
 ## 已知说明
 

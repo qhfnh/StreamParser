@@ -29,7 +29,8 @@ try {
   assert(sitemap.includes('<loc>https://example.com/</loc>'), 'sitemap should include the home page');
   assert(sitemap.includes('<loc>https://example.com/pages/h264-guide.html</loc>'), 'sitemap should include H.264 guide');
   assert(sitemap.includes('<loc>https://example.com/pages/h265-guide.html</loc>'), 'sitemap should include H.265 guide');
-  assert(sitemap.includes('<lastmod>'), 'sitemap should include lastmod dates');
+  assert(sitemap.includes(`<lastmod>${fileLastmod('index.html')}</lastmod>`), 'home lastmod should use the source file modification date');
+  assert(sitemap.includes(`<lastmod>${fileLastmod('pages/h264-guide.html')}</lastmod>`), 'page lastmod should use the source file modification date');
   assert(robots.includes('User-agent: *'), 'robots.txt should keep crawler rules');
   assert(robots.includes('Allow: /'), 'robots.txt should allow crawling');
   assert(robots.includes('Sitemap: https://example.com/sitemap.xml'), 'robots.txt should expose the generated sitemap URL');
@@ -53,3 +54,7 @@ try {
 }
 
 console.log('sitemap generation assertions passed');
+
+function fileLastmod(filePath) {
+  return fs.statSync(path.join(root, filePath)).mtime.toISOString().slice(0, 10);
+}

@@ -2,30 +2,29 @@ const fs = require('fs');
 const path = require('path');
 
 const siteUrl = normalizeSiteUrl(process.env.SITE_URL);
-const today = new Date().toISOString().slice(0, 10);
 
 const urls = [
-  '/',
-  '/pages/h264-guide.html',
-  '/pages/h265-guide.html',
-  '/pages/h264-vs-h265.html',
-  '/pages/annex-b-vs-mp4.html',
-  '/pages/sps-pps-vps-explained.html',
-  '/pages/examples.html',
-  '/pages/faq.html',
-  '/pages/about.html',
-  '/pages/privacy.html',
-  '/pages/terms.html',
-  '/pages/contact.html'
+  { url: '/', file: 'index.html' },
+  { url: '/pages/h264-guide.html', file: 'pages/h264-guide.html' },
+  { url: '/pages/h265-guide.html', file: 'pages/h265-guide.html' },
+  { url: '/pages/h264-vs-h265.html', file: 'pages/h264-vs-h265.html' },
+  { url: '/pages/annex-b-vs-mp4.html', file: 'pages/annex-b-vs-mp4.html' },
+  { url: '/pages/sps-pps-vps-explained.html', file: 'pages/sps-pps-vps-explained.html' },
+  { url: '/pages/examples.html', file: 'pages/examples.html' },
+  { url: '/pages/faq.html', file: 'pages/faq.html' },
+  { url: '/pages/about.html', file: 'pages/about.html' },
+  { url: '/pages/privacy.html', file: 'pages/privacy.html' },
+  { url: '/pages/terms.html', file: 'pages/terms.html' },
+  { url: '/pages/contact.html', file: 'pages/contact.html' }
 ];
 
 const sitemap = [
   '<?xml version="1.0" encoding="UTF-8"?>',
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-  ...urls.map(url => [
+  ...urls.map(({ url, file }) => [
     '  <url>',
     `    <loc>${escapeXml(siteUrl + url)}</loc>`,
-    `    <lastmod>${today}</lastmod>`,
+    `    <lastmod>${getLastmod(file)}</lastmod>`,
     '  </url>'
   ].join('\n')),
   '</urlset>',
@@ -67,6 +66,10 @@ function normalizeSiteUrl(value) {
   }
 
   return parsed.origin;
+}
+
+function getLastmod(filePath) {
+  return fs.statSync(path.join(process.cwd(), filePath)).mtime.toISOString().slice(0, 10);
 }
 
 function escapeXml(value) {
